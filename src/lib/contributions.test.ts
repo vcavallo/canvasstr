@@ -33,6 +33,7 @@ describe('real DList items (github-accounts)', () => {
       expect(c.kindOfContribution).toBe('item');
       expect(c.ref).toMatch(/^39999:[0-9a-f]{64}:.+/);
       expect(c.label).toBeTruthy();
+      expect(c.label).not.toMatch(/-[a-z0-9]{6}$/); // github-username tag, not the d slug
     }
   });
   it('ignore events for other targets', () => {

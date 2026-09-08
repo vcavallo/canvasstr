@@ -4,14 +4,16 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "VITE_RELAY_URL=${VITE_RELAY_URL:-ws://127.0.0.1:7787} vite",
     "build": "vite build && cp dist/index.html dist/404.html",
     "test": "tsc -p tsconfig.app.json --noEmit && eslint && vitest run && vite build",
     "test:unit": "vitest run",
     "lint": "eslint",
     "relay:up": "docker compose -f relay/docker-compose.yml up -d",
     "relay:down": "docker compose -f relay/docker-compose.yml down -v",
-    "serve": "npm run build && npx serve dist"
+    "serve": "npm run build && npx serve dist",
+    "seed": "vite-node test/seed/seed.ts",
+    "dev:public": "vite"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

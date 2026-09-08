@@ -4,6 +4,8 @@ import { ScrollToTop } from "./components/ScrollToTop";
 import NotFound from "./pages/NotFound";
 
 const Home = lazy(() => import("./pages/Home"));
+const CampaignBoard = lazy(() => import("./pages/CampaignBoard"));
+const AuthorView = lazy(() => import("./pages/AuthorView"));
 
 export function AppRouter() {
   return (
@@ -11,6 +13,8 @@ export function AppRouter() {
       <ScrollToTop />
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/campaign/:naddr" element={<CampaignBoard />} />
+        <Route path="/a/:npub" element={<AuthorView />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>

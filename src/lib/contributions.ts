@@ -69,6 +69,9 @@ function labelForItem(e: NostrEvent): string {
     const c = JSON.parse(e.content) as Record<string, { name?: string; slug?: string }>;
     for (const v of Object.values(c)) if (v && (v.name || v.slug)) return v.name ?? v.slug ?? '';
   } catch { /* not JSON */ }
+  const STRUCTURAL = new Set(['d', 'z', 'p', 'e', 'a', 't', 'n', 's', 'b', 'json', 'polarity', 'alt', 'client', 'published_at']);
+  const descriptive = e.tags.find(([n, v]) => !STRUCTURAL.has(n) && n.length > 1 && v);
+  if (descriptive) return descriptive[1];
   const d = firstTag(e, 'd');
   if (d) return d;
   const payload = e.tags.find(([n]) => ['p', 'e', 'a', 't'].includes(n));

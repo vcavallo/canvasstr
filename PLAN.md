@@ -17,7 +17,14 @@ Decisions taken (2026-09-07):
 
 ## Milestones
 
-### M0 — scaffold (this commit)
+### M0 — scaffold ✅
+### M1 — protocol layer ✅ (review 0001)
+### M1b — lens layer ✅ (review 0002)
+### M2 — read-only board ✅ (review 0002)
+
+Original milestone text kept below for reference.
+
+### M0 — scaffold
 Copied infra, docs, empty router. `npm test` green.
 
 ### M1 — protocol layer (pure, tested)
