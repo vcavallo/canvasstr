@@ -10,6 +10,10 @@ Decisions taken (2026-09-07):
 - Nobody owns a list. Self-arbitration allowed.
 - Relays: tags.brainstorm.world, dcosl.brainstorm.world, relay.grantless.org.
 - Tapestry's `feature-magic-carpet` branch and `magic-carpet-chat` are reference only.
+- POV-centric reads (PROTOCOL.md §8): lens = URL ?pov, else the logged-in user's own POV, else
+  `VITE_DEFAULT_POV` (Vinney: npub18yce33sv4tlgqy53js2s2u8pradnkhkmrpmp0x4x2tvg247p4dzq5m2c5f),
+  else NosFabrica house. No POV → prompt to create one on Brainstorm. "View as author" npub box
+  bypasses the lens so unknown pubkeys can start participating. Decided 2026-09-07.
 
 ## Milestones
 
@@ -29,12 +33,17 @@ Copied infra, docs, empty router. `npm test` green.
   and totals `{slots, accepted, paid, remaining}`.
 - Tests for each, using real event fixtures pulled from the brainstorm relays with `nak`.
 
+### M1b — lens layer
+- `src/lib/pov.ts`: parse 10040 (bare `30392` row + `30382:rank` row), `rankFilter(events, scores, minRank)`, lens resolution order. `src/hooks/usePov.ts`, `useRanks(pubkeys)` batched 30382 query keyed by provider.
+- Lens picker in the header: current lens, `?pov=` support, "view as author" input, min-rank slider, "create your POV on Brainstorm" prompt.
+
 ### M2 — read-only board
-- `/` : campaigns list (`#t gleaner`), with target, rate, slots, status.
+- `/` : campaigns list (`#t gleaner`) filtered by lens rank of patron, with arbiter rank badge, target, rate, slots, status.
+- `/a/:npub` : author view (unranked) of one pubkey's campaigns, contributions, acceptances.
 - `/campaign/:naddr` : the live board. Subscribes to contributions (`#z` target), acceptances
   (`#a` campaign), receipts (`#a` campaign). Rows animate from candidate → accepted → paid.
 - Profile chips via kind 0; lud16 presence shown (no address = cannot be paid, warn).
-- Optional GrapeRank column via kind 30382 for the logged-in viewer's POV.
+- Contributor rank column from the lens; low-rank rows collapsed, never hidden.
 
 ### M3 — patron flow
 - Create campaign: pick a target (paste a list coordinate, or search DList headers on the

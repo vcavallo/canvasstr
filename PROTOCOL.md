@@ -161,3 +161,50 @@ Catallax.
 - Per-target rates within one campaign (tagging pays less than adding an item). v0: one rate;
   make two campaigns.
 - Whether Tapestry should learn to read Gleaner 3402s as an endorsement input. Out of scope here.
+
+## 8. Lens: everything is read from a point of view
+
+Gleaner never shows "all campaigns". Every screen is rendered under a **lens**, a pubkey `P`
+whose web of trust decides what is visible and how it is ordered. Nothing here gates
+publishing; a lens only filters reads.
+
+**Resolving a lens.** For lens pubkey `P`:
+
+1. Fetch `P`'s kind 10040 Treasure Map. Take the `["30382:rank", <provider>, <relay>]` row for
+   scores and the bare `["30392", <provider>, <relay>]` row for trusted lists (bare form only;
+   `30392:<metric>` rows are inert on deployed readers).
+2. Scores for a set of pubkeys: `{"kinds":[30382],"authors":[<provider>],"#d":[<pubkeys>]}` from
+   the advertised relay. `rank` is the metric used.
+3. A viewer with a 10040 whose providers return nothing has a POV that is not yet computed;
+   the UI says so and links to Brainstorm to request calculation.
+
+**Choosing the lens**, in order:
+
+1. `?pov=<npub>` in the URL (shareable views).
+2. The logged-in user's own pubkey, if their 10040 resolves.
+3. The deployment default, `VITE_DEFAULT_POV` (this deployment: Vinney's pubkey), falling back
+   to the NosFabrica house POV.
+
+A logged-in user with no POV is prompted once: "Create your point of view on Brainstorm" with a
+link, and in the meantime browses under the default lens.
+
+**What the lens filters.** With `minRank` (default 1, adjustable in the UI):
+
+| Object | Filtered by rank of |
+|---|---|
+| Campaign (33401) | patron; arbiter also shown with its own rank badge |
+| Arbiter suggestions on create | rank under the patron's own lens, sorted, never restricted |
+| Contribution rows on a board | contributor; low-rank rows are collapsed, never hidden from the arbiter |
+| Acceptances (3402) | arbiter |
+| Target lists | lists are not pubkeys; a target is visible if any visible campaign references it |
+
+**Author view (escape hatch).** Anyone can enter an npub `A` in the "view as author" box.
+The client then shows every campaign, contribution and acceptance authored by `A`, ignoring
+the lens entirely and labelling the view "unranked". This is how an unknown pubkey gets
+looked at, judged by an arbiter, paid, and starts accruing trust. The escape hatch never
+changes the default view for anyone else.
+
+**Why not curator lists.** Grantless scoped reads with hand-curated kind 30392 lists.
+Gleaner uses computed GrapeRank scores instead, because Tapestry already publishes them per
+observer and a new viewer gets a lens by creating a POV on Brainstorm rather than by finding a
+curator. Hand-curated 30392s still work as a lens for a `P` whose 10040 delegates to one.
