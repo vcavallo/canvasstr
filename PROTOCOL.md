@@ -133,7 +133,10 @@ When the arbiter zaps a contributor, the kind 9734 zap request SHOULD carry:
 ["p", "<contributor>"]
 ```
 
-so the resulting kind 9735 receipt is discoverable with `{"kinds":[9735],"#a":[<campaign>]}`
+so the resulting kind 9735 receipt is discoverable with `{"kinds":[9735],"#a":[<campaign>]}`.
+The campaign `a` MUST be the first `a` tag: at least one LNURL provider (Coinos) copies only
+the first `a` into the receipt. Do not send an LNURL `comment` with a zap; Coinos overwrites
+the invoice memo with it and then fails to recognise the zap
 and the UI can flip a row to "paid" the moment the receipt lands, before the 3402 arrives.
 Receipt trust rule: the payer is the pubkey inside the `description` (9734), never the
 receipt signer. A receipt is a trigger to re-read; the 3402 is the record.

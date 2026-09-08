@@ -13,7 +13,8 @@
     "relay:down": "docker compose -f relay/docker-compose.yml down -v",
     "serve": "npm run build && npx serve dist",
     "seed": "vite-node test/seed/seed.ts",
-    "dev:public": "vite"
+    "dev:public": "vite",
+    "seed:public": "SEED_PUBLIC=1 SEED_RELAY_URL=wss://relay.grantless.org vite-node test/seed/seed.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

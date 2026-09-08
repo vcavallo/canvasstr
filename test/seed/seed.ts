@@ -7,10 +7,14 @@
 import { finalizeEvent, getPublicKey, type EventTemplate, type VerifiedEvent } from 'nostr-tools/pure';
 import { Relay } from 'nostr-tools/relay';
 import { nip19 } from 'nostr-tools';
+import { existsSync, readFileSync } from 'node:fs';
 import { buildArbiterAnnouncementTemplate } from '../../src/lib/catallax';
 import { buildAcceptanceTemplate, buildCampaignTemplate, parseCampaign, type Campaign } from '../../src/lib/gleaner';
 
 const RELAY = process.env.SEED_RELAY_URL ?? 'ws://127.0.0.1:7787';
+/** SEED_PUBLIC=1: real relay mode — no fake receipts/conclusions, real Coinos lud16s from .coinos-dev.json. */
+const PUBLIC = process.env.SEED_PUBLIC === '1';
+const COINOS: Record<string, { username: string }> = PUBLIC && existsSync('.coinos-dev.json') ? JSON.parse(readFileSync('.coinos-dev.json', 'utf8')) : {};
 
 function key(seed: string): Uint8Array {
   const b = new Uint8Array(32);
@@ -31,21 +35,22 @@ const pk = (w: Who) => getPublicKey(ACCOUNTS[w]);
 const GITHUB_LIST = '39998:b83a28b7e4e5d20bd960c5faeb6625f95529166b8bdb045d42634a2f35919450:github-accounts';
 const LOCAL_LIST_D = 'toronto-restaurants';
 
-let clock = Math.floor(Date.now() / 1000) - 3600;
-const tick = () => (clock += 60);
+let clock = Math.floor(Date.now() / 1000) - (PUBLIC ? 30 : 3600);
+const tick = () => (clock += PUBLIC ? 1 : 60);
 
 async function main() {
   const relay = await Relay.connect(RELAY);
   const published: VerifiedEvent[] = [];
   const pub = async (who: Who, t: EventTemplate | { kind: number; content: string; tags: string[][] }) => {
     const ev = finalizeEvent({ created_at: tick(), ...t }, ACCOUNTS[who]);
-    await relay.publish(ev);
+    await relay.publish(ev).catch((e: unknown) => { if (!String(e).includes('replaced')) throw e; });
     published.push(ev);
     return ev;
   };
 
   for (const [who, name] of [['patron', 'Pat the Patron'], ['arbiter', 'Arbie'], ['alice', 'alice'], ['bob', 'bob'], ['carol', 'carol']] as [Who, string][]) {
-    await pub(who, { kind: 0, content: JSON.stringify({ name, about: `Gleaner dev seed (${name})`, lud16: `${who}@example.invalid` }), tags: [] });
+    const lud16 = COINOS[who] ? `${COINOS[who].username}@coinos.io` : `${who}@example.invalid`;
+    await pub(who, { kind: 0, content: JSON.stringify({ name: PUBLIC ? `${name} (gleaner dev)` : name, about: `Gleaner dev seed (${name})`, lud16 }), tags: [] });
   }
 
   const svc = await pub('arbiter', buildArbiterAnnouncementTemplate({ d: 'gleaner-arbiter', pubkey: pk('arbiter'), name: 'Arbie judges lists', feeType: 'flat', feeAmount: '0' }));
@@ -81,6 +86,7 @@ async function main() {
   await item('carol', 'Bar Isabel');
   await item('alice', 'Alo');
 
+  if (!PUBLIC) {
   // alice paid: arbiter-signed zap request inside a receipt, then a 3402.
   const zapReq = finalizeEvent({ kind: 9734, created_at: tick(), content: '', tags: [['p', pk('alice')], ['e', a1.id], ['a', `33401:${pk('patron')}:${c2.d}`], ['a', localTarget], ['amount', '500000'], ['relays', RELAY]] }, ACCOUNTS.arbiter);
   const receipt = await pub('carol' /* stands in for the LNURL zapper key */, { kind: 9735, content: '', tags: [['p', pk('alice')], ['e', a1.id], ['a', `33401:${pk('patron')}:${c2.d}`], ['description', JSON.stringify(zapReq)], ['bolt11', 'lnbc5u1fake']] });
@@ -89,6 +95,7 @@ async function main() {
   const zapReq2 = finalizeEvent({ kind: 9734, created_at: tick(), content: '', tags: [['p', pk('bob')], ['e', b1.id], ['a', `33401:${pk('patron')}:${c2.d}`], ['amount', '500000']] }, ACCOUNTS.arbiter);
   await pub('carol', { kind: 9735, content: '', tags: [['p', pk('bob')], ['e', b1.id], ['a', `33401:${pk('patron')}:${c2.d}`], ['description', JSON.stringify(zapReq2)]] });
   await pub('arbiter', buildAcceptanceTemplate({ campaign: c2, contribution: b2, resolution: 'rejected', details: 'Could not find it.' }));
+  }
 
   relay.close();
   console.log(`Seeded ${published.length} events → ${RELAY}`);

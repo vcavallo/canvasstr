@@ -96,11 +96,13 @@ export function useLightningZap() {
         created_at: Math.floor(Date.now() / 1000),
       });
 
+      // No LNURL `comment` alongside a zap: the comment already rides in the 9734 content,
+      // and at least one provider (Coinos) overwrites the invoice memo with the comment,
+      // which defeats its own zap-receipt detection (memo must still contain the 9734).
       const invoiceUrl = buildInvoiceUrl(
         params.callback,
         args.amountSats * 1000,
         JSON.stringify(signed),
-        args.comment,
       );
       const invRes = await fetch(invoiceUrl);
       if (!invRes.ok) throw new Error(`Couldn't get a Lightning invoice (${invRes.status}).`);
