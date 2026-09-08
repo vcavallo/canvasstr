@@ -174,7 +174,10 @@ publishing; a lens only filters reads.
    scores and the bare `["30392", <provider>, <relay>]` row for trusted lists (bare form only;
    `30392:<metric>` rows are inert on deployed readers).
 2. Scores for a set of pubkeys: `{"kinds":[30382],"authors":[<provider>],"#d":[<pubkeys>]}` from
-   the advertised relay. `rank` is the metric used.
+   the advertised relay (`wss://nip85.brainstorm.world` for Brainstorm deployments). Chunk the
+   `#d` array to ~300 per REQ. On a 30382, `d` is the subject pubkey and the score is
+   `["rank", "<0-100 integer as string>"]` (= round(influence × 100)); `hops` and
+   `followers` tags are also present and useful for display.
 3. A viewer with a 10040 whose providers return nothing has a POV that is not yet computed;
    the UI says so and links to Brainstorm to request calculation.
 
@@ -183,10 +186,18 @@ publishing; a lens only filters reads.
 1. `?pov=<npub>` in the URL (shareable views).
 2. The logged-in user's own pubkey, if their 10040 resolves.
 3. The deployment default, `VITE_DEFAULT_POV` (this deployment: Vinney's pubkey), falling back
-   to the NosFabrica house POV.
+   to a house POV. "House" means a Tapestry deployment's assistant key, which signs that
+   deployment's 30382s: tags.brainstorm.world is
+   `a68dbf561cfe3da1b76f1e65c7d4d9cc116f79921b38a815fd75cb5460b4b599`, tapestry.brainstorm.world is
+   `919ba08af7786892093b8264332d817379662a0ba0ba1f5c791ed7b62a7ee2ff`. dcosl.brainstorm.world is a
+   bare relay with no assistant. Configure the house provider directly (`VITE_HOUSE_POV_PROVIDER`)
+   rather than assuming it has a 10040.
 
-A logged-in user with no POV is prompted once: "Create your point of view on Brainstorm" with a
-link, and in the meantime browses under the default lens.
+A logged-in user with no POV is prompted once: "Create your point of view on Brainstorm" linking
+to a deployment's sign-up page (`/pages/customers/sign-up.html`), and in the meantime browses
+under the default lens. Scores typically appear 10–30 minutes after sign-up, up to an hour; the
+10040 is published from the Brainstorm account page afterwards. Until both exist the client
+keeps using the fallback lens and shows "your POV is not ready yet".
 
 **What the lens filters.** With `minRank` (default 1, adjustable in the UI):
 
