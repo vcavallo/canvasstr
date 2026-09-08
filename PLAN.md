@@ -21,6 +21,7 @@ Decisions taken (2026-09-07):
 ### M1 — protocol layer ✅ (review 0001)
 ### M1b — lens layer ✅ (review 0002)
 ### M2 — read-only board ✅ (review 0002)
+### M3 — patron flow ✅ (review 0003)
 
 Original milestone text kept below for reference.
 

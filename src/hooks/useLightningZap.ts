@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { useNostr } from '@nostrify/react';
 import type { WebLNProvider } from '@webbtc/webln-types';
+import type { NostrEvent } from '@nostrify/nostrify';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import {
   buildInvoiceUrl,
@@ -20,6 +21,7 @@ export interface PrepareInvoiceArgs {
   goalId: string;
   relays: string[];
   comment?: string;
+  extraTags?: string[][];
 }
 
 /**
@@ -58,12 +60,12 @@ export function useLightningZap() {
    */
   const prepareInvoice = useCallback(
     async (args: PrepareInvoiceArgs): Promise<{ invoice: string; zapRequestId: string }> => {
-      if (!user?.signer) throw new Error('Log in to contribute.');
+      if (!user?.signer) throw new Error('Log in to pay.');
 
       const address = await getLightningAddress(args.recipientPubkey);
       if (!address) {
         throw new Error(
-          "This project's arbiter has no Lightning address (lud16/lud06) in their profile, so a real contribution can't be sent yet.",
+          'The recipient has no Lightning address (lud16/lud06) in their profile, so sats cannot be sent yet.',
         );
       }
 
@@ -145,8 +147,28 @@ export function useLightningZap() {
     [nostr],
   );
 
+  /** Like waitForReceipt but resolves with the receipt event itself (or null). */
+  const findReceipt = useCallback(
+    async (eventId: string, relays: string[], sinceSecs: number, signal: AbortSignal): Promise<NostrEvent | null> => {
+      const deadline = Date.now() + 3 * 60 * 1000;
+      while (Date.now() < deadline && !signal.aborted) {
+        try {
+          const receipts = await nostr.query(
+            [{ kinds: [9735], '#e': [eventId], since: sinceSecs, limit: 20 }],
+            relays.length > 0 ? { signal: AbortSignal.timeout(4000), relays } : { signal: AbortSignal.timeout(4000) },
+          );
+          if (receipts.length > 0) return receipts.sort((a, b) => b.created_at - a.created_at)[0];
+        } catch { /* transient */ }
+        await new Promise((r) => setTimeout(r, 4000));
+      }
+      return null;
+    },
+    [nostr],
+  );
+
   return {
     prepareInvoice,
+    findReceipt,
     payWithWebLN,
     waitForReceipt,
     isWebLNAvailable: !!getWebLN(),

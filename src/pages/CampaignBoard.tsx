@@ -3,6 +3,7 @@ import { Helmet } from 'react-helmet-async';
 import { Link, useParams } from 'react-router-dom';
 import { Layout } from '@/components/gleaner/Layout';
 import { BoardRow } from '@/components/gleaner/BoardRow';
+import { PatronActions } from '@/components/gleaner/PatronActions';
 import { RankBadge } from '@/components/gleaner/RankBadge';
 import { AuthorAvatar } from '@/components/AuthorAvatar';
 import { AuthorName } from '@/components/AuthorName';
@@ -61,6 +62,8 @@ export default function CampaignBoard() {
           {campaign.targets.map((t) => <Badge key={t.z} variant="outline" className="font-mono text-xs">{t.z}</Badge>)}
         </div>
       </div>
+
+      <div className="mb-6"><PatronActions campaign={campaign} /></div>
 
       {ledger && (
         <div className="mb-6 rounded-lg border p-4">

@@ -36,11 +36,13 @@ export interface ZapRequestInput {
   /** The recipient's pubkey (for a contribution, the task's arbiter). */
   recipientPubkey: string;
   amountSats: number;
-  /** The 9041 zap-goal event id — referenced so the receipt counts toward funding. */
+  /** The event id the receipt should reference (`e` tag): a 9041 goal, a campaign, or a contribution. */
   goalId: string;
   /** Relays where the receipt should be published (must be publicly reachable). */
   relays: string[];
   comment?: string;
+  /** Extra tags copied into the request (and so into the receipt), e.g. `a` coordinates. */
+  extraTags?: string[][];
 }
 
 /**
@@ -61,6 +63,7 @@ export function buildZapRequest(
       // so the goal's declared relays come first and are never dropped (NIP-75).
       ['relays', ...new Set(input.relays)],
       ['e', input.goalId],
+      ...(input.extraTags ?? []),
     ],
   };
 }

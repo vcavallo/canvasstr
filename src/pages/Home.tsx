@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Layout } from '@/components/gleaner/Layout';
 import { CampaignCard } from '@/components/gleaner/CampaignCard';
+import { CreateCampaignDialog } from '@/components/gleaner/CreateCampaignDialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Link } from 'react-router-dom';
 import { useAppContext } from '@/hooks/useAppContext';
@@ -34,7 +35,7 @@ export default function Home() {
     <Layout>
       <Helmet><title>Gleaner — campaigns</title></Helmet>
       <div className="mb-4 flex items-baseline justify-between">
-        <h2 className="text-lg font-medium">Campaigns</h2>
+        <div className="flex items-center gap-3"><h2 className="text-lg font-medium">Campaigns</h2><CreateCampaignDialog /></div>
         <span className="text-sm text-muted-foreground">
           {eose ? `${visible.length} shown` : 'loading…'}
           {eose && hidden > 0 && lens.source === 'author' && <span className="ml-2">{hidden} not by this author</span>}
