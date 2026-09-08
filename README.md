@@ -20,10 +20,26 @@ builders in `src/lib/catallax.ts` with unit tests, LNURL zap flow in `src/lib/za
 
 ```
 npm install
-npm run dev          # http://localhost:8080
+npm run relay:up     # local strfry on ws://127.0.0.1:7787 (docker)
+npm run seed         # patron/arbiter/contributor dev keys + two campaigns; prints nsecs
+npm run dev          # app on the local relay (http://localhost:8080)
+npm run dev:public   # app on the public relay set instead
 npm test             # tsc + eslint + vitest + build
-npm run relay:up     # local strfry on ws://127.0.0.1:7787 for dev
 ```
+
+The seed's second campaign targets the real `github-accounts` DList on tags.brainstorm.world,
+so even in local mode the board streams live contributions and GrapeRank ranks from the public relays.
+
+## What works (2026-09-07)
+
+- Campaign list and live board under a point-of-view lens (see `PROTOCOL.md` §8).
+- Patron: create (target search over the Brainstorm relays), fund (LNURL to arbiter or NIP-75 goal), open.
+- Arbiter: accept & pay (LNURL → real receipt → 3402 + kind-7 endorsement), reject, shortlist for
+  terminal payout, close with refund.
+- Contributor: add a DList item directly from the campaign; author view for unknown pubkeys.
+- Not yet: tagging / tag-element contribution forms, arbiter-fee accounting, a real Lightning test.
+
+Record of decisions and reviews: `engineering/`.
 
 Relays the app reads by default: `wss://tags.brainstorm.world/relay`,
 `wss://dcosl.brainstorm.world/relay`, `wss://relay.grantless.org`, plus the usual public ones.
