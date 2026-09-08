@@ -2,6 +2,7 @@ import { CheckCircle2, Circle, CircleDollarSign, XCircle } from 'lucide-react';
 import { nip19 } from 'nostr-tools';
 import { AuthorAvatar } from '@/components/AuthorAvatar';
 import { AuthorName } from '@/components/AuthorName';
+import { ContributionDetails } from './ContributionDetails';
 import { Badge } from '@/components/ui/badge';
 import { formatSats } from '@/lib/catallax';
 import type { LedgerRow } from '@/lib/ledger';
@@ -28,7 +29,8 @@ function describe(row: LedgerRow): string {
 export function BoardRow({ row, score, unranked, dim, relays, children }: { row: LedgerRow; score?: Score; unranked?: boolean; dim?: boolean; relays?: string[]; children?: React.ReactNode }) {
   const s = STATUS[row.status];
   return (
-    <li className={cn('flex flex-wrap items-center gap-3 rounded-md border px-3 py-2 transition-colors', row.status === 'paid' && 'bg-green-50 dark:bg-green-950/30', dim && 'opacity-50')}>
+    <li className={cn('rounded-md border px-3 py-2 transition-colors', row.status === 'paid' && 'bg-green-50 dark:bg-green-950/30', dim && 'opacity-50')}>
+      <div className="flex flex-wrap items-center gap-3">
       <span className="w-6 text-right text-xs tabular-nums text-muted-foreground">{row.position}</span>
       <AuthorAvatar pubkey={row.contribution.pubkey} className="h-6 w-6" relays={relays} />
       <AuthorName pubkey={row.contribution.pubkey} className="font-medium" relays={relays} />
@@ -38,6 +40,8 @@ export function BoardRow({ row, score, unranked, dim, relays, children }: { row:
       {row.paidSats !== undefined && <span className="text-sm tabular-nums">{formatSats(row.paidSats)}</span>}
       <span className={cn('flex items-center gap-1 text-sm', s.tone)}>{s.icon}{s.label}</span>
       {children}
+      </div>
+      <ContributionDetails contribution={row.contribution} relays={relays} />
     </li>
   );
 }

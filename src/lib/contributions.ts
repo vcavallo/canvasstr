@@ -5,6 +5,7 @@
  */
 import type { NostrEvent, NostrFilter } from '@nostrify/nostrify';
 import type { CampaignTarget, ContributionKind } from './gleaner';
+import { STRUCTURAL_TAGS } from './dlist';
 
 export const DLIST_KINDS = { HEADER: 39998, HEADER_REGULAR: 9998, ITEM: 39999, ITEM_REGULAR: 9999 } as const;
 
@@ -25,6 +26,8 @@ export interface Contribution {
   /** For taggings: tag coordinate `39999:<author>:<slug>`. */
   tagCoord?: string;
   polarity: 1 | -1;
+  /** Every descriptive tag on the event (non-structural), in order: what the arbiter judges. */
+  fields: [string, string][];
   event: NostrEvent;
 }
 
@@ -69,8 +72,9 @@ function labelForItem(e: NostrEvent): string {
     const c = JSON.parse(e.content) as Record<string, { name?: string; slug?: string }>;
     for (const v of Object.values(c)) if (v && (v.name || v.slug)) return v.name ?? v.slug ?? '';
   } catch { /* not JSON */ }
-  const STRUCTURAL = new Set(['d', 'z', 'p', 'e', 'a', 't', 'n', 's', 'b', 'json', 'polarity', 'alt', 'client', 'published_at']);
-  const descriptive = e.tags.find(([n, v]) => !STRUCTURAL.has(n) && n.length > 1 && v);
+  // Prefer a list-specific field (e.g. github-username) over free-text description/comments.
+  const descriptive = e.tags.find(([n, v]) => !STRUCTURAL_TAGS.has(n) && n.length > 1 && v && n !== 'description' && n !== 'comments')
+    ?? e.tags.find(([n, v]) => (n === 'description' || n === 'comments') && v);
   if (descriptive) return descriptive[1];
   const d = firstTag(e, 'd');
   if (d) return d;
@@ -87,7 +91,8 @@ export function parseContribution(e: NostrEvent, targets: CampaignTarget[]): Con
   const kindOfContribution = target.hint ?? classifyTarget(target.z);
   const d = firstTag(e, 'd') ?? '';
   const ref = e.kind === DLIST_KINDS.ITEM ? `${e.kind}:${e.pubkey}:${d}` : e.id;
-  const base = { id: e.id, pubkey: e.pubkey, kind: e.kind, created_at: e.created_at, ref, target: target.z, kindOfContribution, polarity: polarityOf(e), event: e };
+  const fields = e.tags.filter(([n, v]) => !STRUCTURAL_TAGS.has(n) && n !== 'polarity' && v).map(([n, v]) => [n, v] as [string, string]);
+  const base = { id: e.id, pubkey: e.pubkey, kind: e.kind, created_at: e.created_at, ref, target: target.z, kindOfContribution, polarity: polarityOf(e), fields, event: e };
 
   if (kindOfContribution === 'profile-tag') {
     const tagged = firstTag(e, 'p');
