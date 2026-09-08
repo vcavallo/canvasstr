@@ -1,0 +1,75 @@
+import { describe, expect, it } from 'vitest';
+import type { NostrEvent } from '@nostrify/nostrify';
+import { buildLedger } from './ledger';
+import { collectContributions } from './contributions';
+import { buildAcceptanceTemplate, buildCampaignFinalTemplate, buildCampaignTemplate, parseCampaign } from './gleaner';
+import { asEvent } from '@/test/fixtures';
+
+const PATRON = 'a'.repeat(64);
+const ARBITER = 'b'.repeat(64);
+const LIST = '39998:' + 'd'.repeat(64) + ':places';
+
+function item(pubkey: string, d: string, created_at: number): NostrEvent {
+  return { kind: 39999, pubkey, created_at, id: `${d}-${pubkey.slice(0, 4)}`, sig: '', content: '', tags: [['d', d], ['z', LIST], ['name', d]] };
+}
+function receipt(contributionId: string, payer: string, sats: number, created_at: number): NostrEvent {
+  const req = { pubkey: payer, tags: [['e', contributionId], ['amount', String(sats * 1000)]] };
+  return { kind: 9735, pubkey: 'zapper', created_at, id: `r-${contributionId}`, sig: '', content: '', tags: [['e', contributionId], ['description', JSON.stringify(req)]] };
+}
+
+const campaign = parseCampaign(asEvent(buildCampaignTemplate({
+  d: 'places', patronPubkey: PATRON, arbiterPubkey: ARBITER, title: 't', description: 'd', requirements: 'r',
+  amount: '1500', targets: [{ z: LIST }], rate: 500, maxPerPubkey: 1, payout: 'streaming', status: 'open',
+}), PATRON, 10, 'campaign'))!;
+
+const alice = '1'.repeat(64), bob = '2'.repeat(64), carol = '3'.repeat(64);
+const events = [item(alice, 'a1', 20), item(bob, 'b1', 30), item(bob, 'b2', 31), item(carol, 'c1', 40), item(PATRON, 'self', 41)];
+const contributions = collectContributions(events, campaign.targets);
+
+describe('buildLedger', () => {
+  it('starts all candidates, 3 slots, excludes the patron', () => {
+    const l = buildLedger(campaign, contributions, [], []);
+    expect(l.rows.map((r) => r.status)).toEqual(['candidate', 'candidate', 'candidate', 'candidate']);
+    expect(l.slots).toBe(3);
+    expect(l.remaining).toBe(3);
+    expect(l.rows.find((r) => r.contribution.pubkey === PATRON)).toBeUndefined();
+  });
+  it('flips to paid on an arbiter-signed receipt before any 3402, and counts the slot', () => {
+    const l = buildLedger(campaign, contributions, [], [receipt('a1-1111', ARBITER, 500, 50)]);
+    expect(l.rows[0].status).toBe('paid');
+    expect(l.rows[0].paidSats).toBe(500);
+    expect(l.paid).toBe(1);
+    expect(l.remaining).toBe(2);
+  });
+  it('ignores receipts whose zap request was not signed by the arbiter', () => {
+    const l = buildLedger(campaign, contributions, [], [receipt('a1-1111', alice, 500, 50)]);
+    expect(l.rows[0].status).toBe('candidate');
+  });
+  it('reads acceptances and rejections from arbiter-signed 3402s only', () => {
+    const acc = asEvent(buildAcceptanceTemplate({ campaign, contribution: events[0], payoutReceiptId: 'rcpt', resolution: 'successful' }), ARBITER, 60);
+    const rej = asEvent(buildAcceptanceTemplate({ campaign, contribution: events[1], resolution: 'rejected' }), ARBITER, 61);
+    const forged = asEvent(buildAcceptanceTemplate({ campaign, contribution: events[3], payoutReceiptId: 'x', resolution: 'successful' }), carol, 62);
+    const l = buildLedger(campaign, contributions, [acc, rej, forged], []);
+    expect(l.rows.map((r) => r.status)).toEqual(['paid', 'rejected', 'candidate', 'candidate']);
+    expect(l.rejected).toBe(1);
+  });
+  it('enforces max_per_pubkey and slot exhaustion as fundability, not hiding', () => {
+    const paidA = receipt('a1-1111', ARBITER, 500, 50);
+    const paidB1 = receipt('b1-2222', ARBITER, 500, 51);
+    const l = buildLedger(campaign, contributions, [], [paidA, paidB1]);
+    const b2 = l.rows.find((r) => r.contribution.id === 'b2-2222')!;
+    expect(b2.status).toBe('candidate');
+    expect(b2.fundable).toBe(false); // bob already has his one
+    const c1 = l.rows.find((r) => r.contribution.id === 'c1-3333')!;
+    expect(c1.fundable).toBe(true);
+    expect(l.remaining).toBe(1);
+    const paidC = receipt('c1-3333', ARBITER, 500, 52);
+    const full = buildLedger(campaign, contributions, [], [paidA, paidB1, paidC]);
+    expect(full.remaining).toBe(0);
+    expect(full.rows.every((r) => r.status === 'paid' || !r.fundable)).toBe(true);
+  });
+  it('picks up the final conclusion', () => {
+    const fin = asEvent(buildCampaignFinalTemplate({ campaign, resolution: 'successful' }), ARBITER, 99);
+    expect(buildLedger(campaign, contributions, [fin], []).final?.resolution).toBe('successful');
+  });
+});

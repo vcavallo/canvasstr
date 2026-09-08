@@ -1,0 +1,108 @@
+/**
+ * The board: join a campaign with its contributions, acceptances (3402) and zap receipts
+ * (9735) into rows that flip candidate → accepted → paid, plus slot totals. Pure.
+ * Slot accounting borrows Magic Carpet's rule: an accepted-but-unreceipted row holds a slot
+ * exactly like a paid one, so the board never over-promises.
+ */
+import type { NostrEvent } from '@nostrify/nostrify';
+import { parseZapReceiptSender } from './catallax';
+import type { Contribution } from './contributions';
+import { campaignSlots, parseAcceptance, type Acceptance, type Campaign, type CampaignFinal } from './gleaner';
+
+export type RowStatus = 'candidate' | 'accepted' | 'paid' | 'rejected';
+
+export interface LedgerRow {
+  contribution: Contribution;
+  status: RowStatus;
+  acceptance?: Acceptance;
+  receipt?: NostrEvent;
+  /** Sats paid per the receipt's zap request, if any. */
+  paidSats?: number;
+  /** Order in which it arrived among counted contributions (1-based). */
+  position: number;
+  /** False when this row is beyond the slots the escrow can pay. */
+  fundable: boolean;
+}
+
+export interface Ledger {
+  rows: LedgerRow[];
+  slots: number;
+  accepted: number;
+  paid: number;
+  rejected: number;
+  remaining: number;
+  final?: CampaignFinal;
+}
+
+interface ReceiptInfo {
+  receipt: NostrEvent;
+  sats: number;
+}
+
+/** Receipts whose embedded zap request was signed by an accepted payer (the arbiter). */
+function indexReceipts(receipts: NostrEvent[], payers: Set<string>): Map<string, ReceiptInfo> {
+  const byContribution = new Map<string, ReceiptInfo>();
+  for (const r of receipts) {
+    if (r.kind !== 9735) continue;
+    const desc = r.tags.find(([n]) => n === 'description')?.[1];
+    if (!desc) continue;
+    let req: NostrEvent;
+    try { req = JSON.parse(desc) as NostrEvent; } catch { continue; }
+    if (!payers.has(req.pubkey)) continue;
+    const amountMsat = Number(req.tags?.find(([n]) => n === 'amount')?.[1] ?? 0);
+    const eIds = (req.tags ?? []).filter(([n]) => n === 'e').map(([, v]) => v);
+    for (const id of eIds) {
+      const prev = byContribution.get(id);
+      if (!prev || r.created_at > prev.receipt.created_at) {
+        byContribution.set(id, { receipt: r, sats: Math.floor(amountMsat / 1000) });
+      }
+    }
+  }
+  return byContribution;
+}
+
+export function buildLedger(
+  campaign: Campaign,
+  contributions: Contribution[],
+  conclusions: NostrEvent[],
+  receipts: NostrEvent[],
+  opts: { arbiterFeeSats?: number } = {},
+): Ledger {
+  const arbiter = campaign.arbiterPubkey;
+  const acceptances = new Map<string, Acceptance>();
+  let final: CampaignFinal | undefined;
+  for (const e of conclusions) {
+    if (arbiter && e.pubkey !== arbiter) continue; // only the arbiter's word counts
+    const a = parseAcceptance(e);
+    if (!a) continue;
+    if (a.isFinal) { if (!final || a.created_at > final.created_at) final = a; continue; }
+    const prev = acceptances.get(a.contributionId);
+    if (!prev || a.created_at > prev.created_at) acceptances.set(a.contributionId, a);
+  }
+  const receiptIndex = indexReceipts(receipts, new Set(arbiter ? [arbiter] : []));
+  const slots = campaignSlots(campaign, opts.arbiterFeeSats ?? 0);
+  const perPubkey = new Map<string, number>();
+
+  const rows: LedgerRow[] = [];
+  let held = 0;
+  let paid = 0;
+  let rejected = 0;
+  for (const c of contributions) {
+    if (c.pubkey === campaign.patronPubkey || c.pubkey === arbiter) continue; // no self-dealing
+    const acceptance = acceptances.get(c.id);
+    const paidInfo = receiptIndex.get(c.id);
+    let status: RowStatus = 'candidate';
+    if (acceptance?.resolution === 'rejected') status = 'rejected';
+    else if (acceptance || paidInfo) status = paidInfo || acceptance?.payoutZapReceiptId ? 'paid' : 'accepted';
+    if (status === 'rejected') rejected++;
+    const consumesSlot = status === 'paid' || status === 'accepted';
+    const count = perPubkey.get(c.pubkey) ?? 0;
+    const overCap = campaign.maxPerPubkey !== undefined && count >= campaign.maxPerPubkey && !consumesSlot;
+    const fundable = consumesSlot || (!overCap && held + paid < slots);
+    if (consumesSlot) { perPubkey.set(c.pubkey, count + 1); if (status === 'paid') paid++; else held++; }
+    rows.push({ contribution: c, status, acceptance, receipt: paidInfo?.receipt, paidSats: paidInfo?.sats, position: rows.length + 1, fundable });
+  }
+  return { rows, slots, accepted: held + paid, paid, rejected, remaining: Math.max(0, slots - held - paid), final };
+}
+
+export { parseZapReceiptSender };
