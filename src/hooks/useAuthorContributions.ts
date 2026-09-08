@@ -21,7 +21,7 @@ export function useAuthorContributions(author: string | undefined, campaigns: Ca
   const items = useMemo<AuthorContribution[]>(() => {
     const out: AuthorContribution[] = [];
     for (const campaign of campaigns) {
-      for (const contribution of collectContributions(live.events, campaign.targets, { since: campaign.since ?? campaign.created_at })) {
+      for (const contribution of collectContributions(live.events, campaign.targets, { since: campaign.since })) {
         out.push({ campaign, contribution });
       }
     }

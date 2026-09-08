@@ -22,6 +22,7 @@ Decisions taken (2026-09-07):
 ### M1b — lens layer ✅ (review 0002)
 ### M2 — read-only board ✅ (review 0002)
 ### M3 — patron flow ✅ (review 0003)
+### M4 — arbiter flow ✅ (review 0004)
 
 Original milestone text kept below for reference.
 

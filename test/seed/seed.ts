@@ -70,7 +70,7 @@ async function main() {
     d: 'toronto-restaurants-bounty', patronPubkey: pk('patron'), arbiterPubkey: pk('arbiter'), arbiterService,
     title: 'Restaurants in Toronto', description: 'Add restaurants you have actually eaten at.', requirements: 'Real places. One per item.',
     amount: '2000', rate: 500, maxPerPubkey: 2, payout: 'streaming', status: 'open',
-    targets: [{ z: localTarget, relay: RELAY, hint: 'item' }],
+    targets: [{ z: localTarget, relay: RELAY, hint: 'item' }], since: clock,
   }));
   const c2 = parseCampaign(c2ev) as Campaign;
 

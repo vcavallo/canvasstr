@@ -13,7 +13,7 @@ import { useLiveEvents } from './useLiveEvents';
  */
 export function useCampaignBoard(campaign: Campaign | null, activeRelays: string[]) {
   const coord = campaign ? campaignCoord(campaign) : undefined;
-  const since = campaign?.since ?? campaign?.created_at;
+  const since = campaign?.since;
 
   const contributionFilters = useMemo<NostrFilter[] | null>(
     () => (campaign ? [targetsToFilter(campaign.targets, since)] : null),

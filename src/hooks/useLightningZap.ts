@@ -70,7 +70,7 @@ export function useLightningZap() {
       }
 
       const lnurlUrl = lightningAddressToLnurlPayUrl(address);
-      const res = await fetch(lnurlUrl);
+      const res = await fetch(lnurlUrl).catch(() => { throw new Error(`Couldn't reach the recipient's Lightning service at ${address}.`); });
       if (!res.ok) throw new Error(`Couldn't reach the recipient's Lightning service (${res.status}).`);
       const params = (await res.json()) as {
         tag?: string;

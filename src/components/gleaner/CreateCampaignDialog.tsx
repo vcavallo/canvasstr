@@ -59,7 +59,7 @@ export function CreateCampaignDialog() {
       const template = buildCampaignTemplate({
         d: generateTaskId(title), patronPubkey: user.pubkey, title: title.trim(), description: description.trim(), requirements: requirements.trim(),
         amount: String(parseInt(amount, 10)), rate: parseInt(rate, 10), maxPerPubkey: maxPerPubkey ? parseInt(maxPerPubkey, 10) : undefined,
-        payout, fundingType, arbiterPubkey: arbiter.pubkey, arbiterService: arbiter.service, targets, status: 'proposed',
+        payout, fundingType, arbiterPubkey: arbiter.pubkey, arbiterService: arbiter.service, targets, status: 'proposed', since: Math.floor(Date.now() / 1000),
       });
       const ev = await publish(template);
       toast({ title: 'Campaign published', description: 'Next: fund the escrow, then open it for contributions.' });

@@ -4,6 +4,8 @@ import { Link, useParams } from 'react-router-dom';
 import { Layout } from '@/components/gleaner/Layout';
 import { BoardRow } from '@/components/gleaner/BoardRow';
 import { PatronActions } from '@/components/gleaner/PatronActions';
+import { ArbiterPanel, ArbiterRowControls } from '@/components/gleaner/ArbiterActions';
+import { useArbiterActions } from '@/hooks/useArbiterActions';
 import { RankBadge } from '@/components/gleaner/RankBadge';
 import { AuthorAvatar } from '@/components/AuthorAvatar';
 import { AuthorName } from '@/components/AuthorName';
@@ -19,6 +21,8 @@ import { decodeCampaignNaddr } from '@/lib/naddr';
 import { getActiveRelays } from '@/lib/relays';
 import { passesLens } from '@/lib/pov';
 
+const FALLBACK = { patronPubkey: '', d: '', id: '', amount: '0', rate: 1, targets: [], content: { title: '', description: '', requirements: '' }, status: 'proposed', pubkey: '', created_at: 0, categories: [], fundingType: 'single', payout: 'streaming' } as unknown as import('@/lib/gleaner').Campaign;
+
 export default function CampaignBoard() {
   const { naddr } = useParams();
   const addr = decodeCampaignNaddr(naddr);
@@ -27,6 +31,7 @@ export default function CampaignBoard() {
   const { campaign, eose: campaignEose } = useCampaign(addr?.pubkey, addr?.identifier);
   const { ledger, eose } = useCampaignBoard(campaign, activeRelays);
   const { lens, minRank } = useLens();
+  const arbiter = useArbiterActions(campaign ?? FALLBACK, ledger);
   const pubkeys = useMemo(() => [
     campaign?.patronPubkey ?? '', campaign?.arbiterPubkey ?? '',
     ...(ledger?.rows.map((r) => r.contribution.pubkey) ?? []),
@@ -63,7 +68,7 @@ export default function CampaignBoard() {
         </div>
       </div>
 
-      <div className="mb-6"><PatronActions campaign={campaign} /></div>
+      <div className="mb-6 space-y-3"><PatronActions campaign={campaign} /><ArbiterPanel a={arbiter} campaign={campaign} ledger={ledger} /></div>
 
       {ledger && (
         <div className="mb-6 rounded-lg border p-4">
@@ -87,7 +92,11 @@ export default function CampaignBoard() {
       <ul className="space-y-2">
         {shownRows.map((row) => {
           const dim = !unranked && !!lens.provider && !!ranks.data && !passesLens(scores, row.contribution.pubkey, minRank) && row.status === 'candidate';
-          return <BoardRow key={row.contribution.ref} row={row} score={scores.get(row.contribution.pubkey)} unranked={unranked} dim={dim} />;
+          return (
+            <BoardRow key={row.contribution.ref} row={row} score={scores.get(row.contribution.pubkey)} unranked={unranked} dim={dim}>
+              <ArbiterRowControls row={row} a={arbiter} campaign={campaign} />
+            </BoardRow>
+          );
         })}
       </ul>
       <p className="mt-6 text-xs text-muted-foreground"><Link to="/" className="underline">All campaigns</Link></p>

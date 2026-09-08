@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { parseTaskProposal, parseTaskConclusion } from './catallax';
 import {
-  acceptedKinds, buildAcceptanceTemplate, buildCampaignFinalTemplate, buildCampaignTemplate, campaignSlots,
+  acceptedKinds, buildAcceptanceTemplate, buildEndorsementTemplate, buildCampaignFinalTemplate, buildCampaignTemplate, campaignSlots,
   campaignToInput, isCampaignEvent, latestAuthoritativeCampaign, markCampaignStatus, parseAcceptance, parseCampaign,
   type CampaignInput,
 } from './gleaner';
@@ -150,5 +150,16 @@ describe('acceptances', () => {
   it('ignores ordinary 3402s without contribution tags', () => {
     const plain = { ...asEvent(t, ARBITER), tags: t.tags.filter(([n]) => n !== 'contribution') };
     expect(parseAcceptance(plain)).toBeNull();
+  });
+});
+
+describe('buildEndorsementTemplate', () => {
+  it('is a kind 7 "+" pointing at the item by id and coordinate', () => {
+    const t = buildEndorsementTemplate({ id: 'x', pubkey: CONTRIB, kind: 39999, tags: [['d', 'sushi']] }, 'wss://r');
+    expect(t.kind).toBe(7);
+    expect(t.content).toBe('+');
+    expect(t.tags).toContainEqual(['e', 'x', 'wss://r']);
+    expect(t.tags).toContainEqual(['a', `39999:${CONTRIB}:sushi`, 'wss://r']);
+    expect(t.tags).toContainEqual(['k', '39999']);
   });
 });

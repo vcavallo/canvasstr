@@ -19,7 +19,7 @@ function receipt(contributionId: string, payer: string, sats: number, created_at
 
 const campaign = parseCampaign(asEvent(buildCampaignTemplate({
   d: 'places', patronPubkey: PATRON, arbiterPubkey: ARBITER, title: 't', description: 'd', requirements: 'r',
-  amount: '1500', targets: [{ z: LIST }], rate: 500, maxPerPubkey: 1, payout: 'streaming', status: 'open',
+  amount: '1500', targets: [{ z: LIST }], rate: 500, maxPerPubkey: 1, payout: 'streaming', status: 'open', since: 1,
 }), PATRON, 10, 'campaign'))!;
 
 const alice = '1'.repeat(64), bob = '2'.repeat(64), carol = '3'.repeat(64);

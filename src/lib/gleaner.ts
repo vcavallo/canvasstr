@@ -40,8 +40,11 @@ export interface CampaignInput extends Omit<TaskProposalInput, 'workerPubkey' | 
   maxPerPubkey?: number;
   payout: PayoutMode;
   accepts?: ContributionKind[];
-  /** Contributions created before this unix timestamp do not count. */
-  since?: number;
+  /**
+   * Contributions created before this unix timestamp do not count. Required so it is
+   * pinned at first publish and survives status republishes (whose created_at moves).
+   */
+  since: number;
 }
 
 export interface Campaign extends Omit<TaskProposal, 'status'> {
@@ -52,7 +55,8 @@ export interface Campaign extends Omit<TaskProposal, 'status'> {
   payout: PayoutMode;
   /** Undefined = every kind (the default). */
   accepts?: ContributionKind[];
-  since?: number;
+  /** Falls back to the event's created_at for legacy campaigns without the tag. */
+  since: number;
 }
 
 export type EventTemplate = { kind: number; content: string; tags: string[][] };
@@ -87,7 +91,8 @@ export function buildCampaignTemplate(input: CampaignInput): EventTemplate {
   if (maxPerPubkey !== undefined) tags.push(['max_per_pubkey', String(maxPerPubkey)]);
   tags.push(['payout', payout]);
   for (const a of accepts ?? []) tags.push(['accepts', a]);
-  if (since !== undefined) tags.push(['since', String(since)]);
+  if (!Number.isInteger(since) || since <= 0) throw new Error('since must be a unix timestamp');
+  tags.push(['since', String(since)]);
   return { ...base, tags };
 }
 
@@ -133,7 +138,7 @@ export function parseCampaign(event: NostrEvent): Campaign | null {
     maxPerPubkey: maxPerPubkey && Number.isInteger(maxPerPubkey) && maxPerPubkey > 0 ? maxPerPubkey : undefined,
     payout,
     accepts: accepts.length ? accepts : undefined,
-    since: since && Number.isFinite(since) ? since : undefined,
+    since: since && Number.isFinite(since) && since > 0 ? since : event.created_at,
   };
 }
 
@@ -289,4 +294,11 @@ export function parseAcceptance(event: NostrEvent): Acceptance | CampaignFinal |
   const id = event.tags.find(([n, , , marker]) => n === 'e' && marker === 'contribution')?.[1];
   if (!ref || !id) return null;
   return { ...base, contributionRef: ref, contributionId: id, isFinal: false };
+}
+
+/** NIP-25 `+` on an accepted contribution: the DList NIP's endorsement signal (PROTOCOL.md §6). */
+export function buildEndorsementTemplate(contribution: Pick<NostrEvent, 'id' | 'pubkey' | 'kind' | 'tags'>, relay?: string): EventTemplate {
+  const tags: string[][] = [['e', contribution.id, relay ?? ''], ['p', contribution.pubkey], ['k', String(contribution.kind)]];
+  if (contribution.kind >= 30000 && contribution.kind < 40000) tags.push(['a', contributionRef(contribution), relay ?? '']);
+  return { kind: 7, content: '+', tags };
 }
