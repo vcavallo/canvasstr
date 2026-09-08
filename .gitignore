@@ -41,3 +41,4 @@ playwright-report/
 
 # nix / direnv
 .direnv/
+.coinos-dev.json
