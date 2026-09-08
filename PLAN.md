@@ -61,6 +61,6 @@ Copied infra, docs, empty router. `npm test` green.
 ## Open risks
 - Tapestry emits dual `z` (legacy canonical TA + local TA) on taggings; the target filter must
   accept both namespaces. Ask tapestry which handles to honor for a given deployment.
-- `dcosl.brainstorm.world` relay path / NIP-11 not yet verified.
+- `wss://dcosl.brainstorm.world/relay` verified: strfry, stores 9998/9999/39998/39999 and kind 7 only.
 - Reference-client and Grantless render a campaign as a funded task with no worker; harmless
   but worth a note upstream once PROTOCOL.md stabilizes.
