@@ -8,8 +8,8 @@ import { cn } from '@/lib/utils';
  * A profile avatar with honest loading: a skeleton while the kind-0 resolves, then the
  * picture (or an initial fallback). Generic companion to {@link AuthorName}.
  */
-export function AuthorAvatar({ pubkey, className }: { pubkey: string; className?: string }) {
-  const author = useAuthor(pubkey);
+export function AuthorAvatar({ pubkey, className, relays }: { pubkey: string; className?: string; relays?: string[] }) {
+  const author = useAuthor(pubkey, relays);
 
   if (author.isLoading && !author.data) {
     return <Skeleton className={cn('h-8 w-8 rounded-full', className)} />;

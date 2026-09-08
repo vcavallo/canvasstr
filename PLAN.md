@@ -23,6 +23,7 @@ Decisions taken (2026-09-07):
 ### M2 — read-only board ✅ (review 0002)
 ### M3 — patron flow ✅ (review 0003)
 ### M4 — arbiter flow ✅ (review 0004)
+### M5 — contributor affordances ✅ items only (review 0005); tagging + tag-element forms are follow-ups
 
 Original milestone text kept below for reference.
 

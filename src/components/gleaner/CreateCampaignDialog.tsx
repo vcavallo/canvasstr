@@ -43,6 +43,7 @@ export function CreateCampaignDialog() {
   const [payout, setPayout] = useState<PayoutMode>('streaming');
   const [fundingType, setFundingType] = useState<FundingType>('single');
   const [arbiter, setArbiter] = useState<ArbiterChoice | undefined>();
+  const [countExisting, setCountExisting] = useState(false);
   const [error, setError] = useState('');
 
   const listRelays = useMemo(() => [...new Set([...LIST_RELAYS, ...getActiveRelays(config, presetRelays)])], [config, presetRelays]);
@@ -59,7 +60,7 @@ export function CreateCampaignDialog() {
       const template = buildCampaignTemplate({
         d: generateTaskId(title), patronPubkey: user.pubkey, title: title.trim(), description: description.trim(), requirements: requirements.trim(),
         amount: String(parseInt(amount, 10)), rate: parseInt(rate, 10), maxPerPubkey: maxPerPubkey ? parseInt(maxPerPubkey, 10) : undefined,
-        payout, fundingType, arbiterPubkey: arbiter.pubkey, arbiterService: arbiter.service, targets, status: 'proposed', since: Math.floor(Date.now() / 1000),
+        payout, fundingType, arbiterPubkey: arbiter.pubkey, arbiterService: arbiter.service, targets, status: 'proposed', since: countExisting ? 1 : Math.floor(Date.now() / 1000),
       });
       const ev = await publish(template);
       toast({ title: 'Campaign published', description: 'Next: fund the escrow, then open it for contributions.' });
@@ -89,6 +90,7 @@ export function CreateCampaignDialog() {
             <div className="space-y-1"><Label htmlFor="c-max">Max per person</Label><Input id="c-max" type="number" min={1} value={maxPerPubkey} onChange={(e) => setMaxPerPubkey(e.target.value)} placeholder="∞" /></div>
           </div>
           <p className="text-sm text-muted-foreground">{slots} slots before any arbiter fee.</p>
+          <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={countExisting} onChange={(e) => setCountExisting(e.target.checked)} />Also count items already on the list (otherwise only new ones from now on)</label>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
               <Label>Payout</Label>

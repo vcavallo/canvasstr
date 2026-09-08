@@ -4,6 +4,7 @@ import { Link, useParams } from 'react-router-dom';
 import { Layout } from '@/components/gleaner/Layout';
 import { BoardRow } from '@/components/gleaner/BoardRow';
 import { PatronActions } from '@/components/gleaner/PatronActions';
+import { ContributeItemDialog } from '@/components/gleaner/ContributeItemDialog';
 import { ArbiterPanel, ArbiterRowControls } from '@/components/gleaner/ArbiterActions';
 import { useArbiterActions } from '@/hooks/useArbiterActions';
 import { RankBadge } from '@/components/gleaner/RankBadge';
@@ -29,7 +30,7 @@ export default function CampaignBoard() {
   const { config, presetRelays } = useAppContext();
   const activeRelays = useMemo(() => getActiveRelays(config, presetRelays), [config, presetRelays]);
   const { campaign, eose: campaignEose } = useCampaign(addr?.pubkey, addr?.identifier);
-  const { ledger, eose } = useCampaignBoard(campaign, activeRelays);
+  const { ledger, eose, relays: boardRelays } = useCampaignBoard(campaign, activeRelays);
   const { lens, minRank } = useLens();
   const arbiter = useArbiterActions(campaign ?? FALLBACK, ledger);
   const pubkeys = useMemo(() => [
@@ -85,7 +86,7 @@ export default function CampaignBoard() {
       )}
 
       <div className="mb-2 flex items-baseline justify-between">
-        <h3 className="font-medium">Contributions</h3>
+        <div className="flex items-center gap-3"><h3 className="font-medium">Contributions</h3><ContributeItemDialog campaign={campaign} relays={activeRelays} /></div>
         <span className="text-sm text-muted-foreground">{eose ? `${shownRows.length} so far` : 'listening…'}</span>
       </div>
       {eose && shownRows.length === 0 && <p className="text-muted-foreground">Nothing yet. Contributions appear here the moment they hit the relays.</p>}
@@ -93,7 +94,7 @@ export default function CampaignBoard() {
         {shownRows.map((row) => {
           const dim = !unranked && !!lens.provider && !!ranks.data && !passesLens(scores, row.contribution.pubkey, minRank) && row.status === 'candidate';
           return (
-            <BoardRow key={row.contribution.ref} row={row} score={scores.get(row.contribution.pubkey)} unranked={unranked} dim={dim}>
+            <BoardRow key={row.contribution.ref} row={row} score={scores.get(row.contribution.pubkey)} unranked={unranked} dim={dim} relays={boardRelays}>
               <ArbiterRowControls row={row} a={arbiter} campaign={campaign} />
             </BoardRow>
           );

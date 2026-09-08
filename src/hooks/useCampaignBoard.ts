@@ -40,5 +40,5 @@ export function useCampaignBoard(campaign: Campaign | null, activeRelays: string
     return buildLedger(campaign, cs, conclusions, receipts);
   }, [campaign, contributions.events, settlement.events, since]);
 
-  return { ledger, eose: contributions.eose && settlement.eose, error: contributions.error ?? settlement.error };
+  return { ledger, relays: contributionRelays, eose: contributions.eose && settlement.eose, error: contributions.error ?? settlement.error };
 }

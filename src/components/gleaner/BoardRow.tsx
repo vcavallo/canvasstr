@@ -25,13 +25,13 @@ function describe(row: LedgerRow): string {
   }
 }
 
-export function BoardRow({ row, score, unranked, dim, children }: { row: LedgerRow; score?: Score; unranked?: boolean; dim?: boolean; children?: React.ReactNode }) {
+export function BoardRow({ row, score, unranked, dim, relays, children }: { row: LedgerRow; score?: Score; unranked?: boolean; dim?: boolean; relays?: string[]; children?: React.ReactNode }) {
   const s = STATUS[row.status];
   return (
     <li className={cn('flex flex-wrap items-center gap-3 rounded-md border px-3 py-2 transition-colors', row.status === 'paid' && 'bg-green-50 dark:bg-green-950/30', dim && 'opacity-50')}>
       <span className="w-6 text-right text-xs tabular-nums text-muted-foreground">{row.position}</span>
-      <AuthorAvatar pubkey={row.contribution.pubkey} className="h-6 w-6" />
-      <AuthorName pubkey={row.contribution.pubkey} className="font-medium" />
+      <AuthorAvatar pubkey={row.contribution.pubkey} className="h-6 w-6" relays={relays} />
+      <AuthorName pubkey={row.contribution.pubkey} className="font-medium" relays={relays} />
       <RankBadge score={score} unranked={unranked} />
       <span className="flex-1 min-w-48 truncate" title={row.contribution.ref}>{describe(row)}</span>
       {!row.fundable && row.status === 'candidate' && <Badge variant="outline" className="text-muted-foreground">beyond budget</Badge>}
