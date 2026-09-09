@@ -5,6 +5,7 @@ import { Layout } from '@/components/gleaner/Layout';
 import { BoardRow } from '@/components/gleaner/BoardRow';
 import { PatronActions } from '@/components/gleaner/PatronActions';
 import { ContributeItemDialog } from '@/components/gleaner/ContributeItemDialog';
+import { TagProfileDialog } from '@/components/gleaner/TagProfileDialog';
 import { VoteButtons } from '@/components/gleaner/VoteButtons';
 import { tallyVotes } from '@/lib/votes';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
@@ -95,7 +96,7 @@ export default function CampaignBoard() {
       )}
 
       <div className="mb-2 flex items-baseline justify-between">
-        <div className="flex items-center gap-3"><h3 className="font-medium">Contributions</h3><ContributeItemDialog campaign={campaign} relays={activeRelays} /></div>
+        <div className="flex items-center gap-3"><h3 className="font-medium">Contributions</h3><ContributeItemDialog campaign={campaign} relays={activeRelays} /><TagProfileDialog campaign={campaign} relays={activeRelays} /></div>
         <span className="text-sm text-muted-foreground">{eose ? `${shownRows.length} so far` : 'listening…'}</span>
       </div>
       {eose && shownRows.length === 0 && <p className="text-muted-foreground">Nothing yet. Contributions appear here the moment they hit the relays.</p>}
@@ -118,7 +119,7 @@ export default function CampaignBoard() {
               <li key={c.ref} className="flex flex-wrap items-center gap-x-3 gap-y-1 py-1.5">
                 <AuthorAvatar pubkey={c.pubkey} className="h-5 w-5" relays={boardRelays} />
                 <AuthorName pubkey={c.pubkey} relays={boardRelays} />
-                <span className="min-w-0 flex-1 truncate" title={c.ref}>{c.label}</span>
+                <span className="min-w-0 flex-1 truncate" title={c.ref}>{c.kindOfContribution === 'profile-tag' && c.taggedRef ? <>tagged <AuthorName pubkey={c.taggedRef} relays={boardRelays} className="font-medium" /></> : c.label}</span>
                 <time className="text-xs text-muted-foreground" dateTime={new Date(c.created_at * 1000).toISOString()}>{new Date(c.created_at * 1000).toLocaleDateString()}</time>
               </li>
             ))}
