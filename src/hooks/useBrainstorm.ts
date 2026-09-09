@@ -126,7 +126,7 @@ export function useBrainstormAccount(): BrainstormAccount {
       const r = await api<string[][]>(`/setup/${pk}`);
       const rows = Array.isArray(r.body) ? r.body.filter(isTreasureMapRow) : [];
       if (rows.length === 0) throw new Error('Brainstorm has no delegation rows for you yet.');
-      const relays = [...new Set([env.nip85Relay, ...rows.map((row) => row[2]).filter((x) => /^wss:\/\//.test(x))])];
+      const relays = [...new Set([env.nip85Relay, ...rows.map((row) => row[2]).filter((x) => /^wss:\/\//.test(x)), ...env.receiptRelays])];
       await publishTo({ template: { kind: KIND_TREASURE_MAP, content: '', tags: rows }, relays });
       await qc.invalidateQueries({ queryKey: ['lens', 'treasure-map', pk] });
     } catch (e) { setError(e instanceof Error ? e.message : String(e)); }

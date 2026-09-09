@@ -18,6 +18,10 @@ const SOURCE_LABEL: Record<string, string> = {
 export function LensBar() {
   const { lens, minRank, setMinRank, selfPov, author, setAuthor } = useLens();
   const bs = useBrainstormAccount();
+  // /user/history can lag behind the actual calculation; the lens readiness probe (stats graperank-pov) is authoritative.
+  const povReady = selfPov === 'ready';
+  const state = povReady && (bs.state === 'computing' || bs.state === 'none' || bs.state === 'unknown') ? 'ready' : bs.state;
+  const hasMap = povReady && lens.source === 'self' && lens.via === 'relay';
   const [draft, setDraft] = useState('');
   const invalid = draft.length > 0 && !toHexPubkey(draft);
 
@@ -65,16 +69,18 @@ export function LensBar() {
         </form>
       )}
 
-      {bs.state === 'failed' && <span className="text-destructive">Brainstorm could not compute a point of view for this key (a key with no follows has no web of trust).</span>}
-      {selfPov === 'missing' && !author && bs.state !== 'computing' && bs.state !== 'ready' && (
+      {state === 'failed' && <span className="text-destructive">Brainstorm could not compute a point of view for this key (a key with no follows has no web of trust).</span>}
+      {selfPov === 'missing' && !author && state !== 'computing' && state !== 'ready' && (
         <Button size="sm" variant="outline" disabled={bs.state === 'busy'} onClick={() => void bs.createPov()} title="Signs a login challenge with your key and asks Brainstorm to compute GrapeRank from your point of view">
-          {bs.state === 'busy' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}{bs.state === 'failed' ? 'Try again' : 'Create my point of view'}
+          {state === 'busy' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}{state === 'failed' ? 'Try again' : 'Create my point of view'}
         </Button>
       )}
-      {bs.state === 'computing' && <span className="flex items-center text-muted-foreground"><Loader2 className="mr-2 h-4 w-4 animate-spin" />Brainstorm is computing your point of view (a few minutes; this checks every minute)</span>}
-      {bs.state === 'ready' && selfPov === 'missing' && (
-        <span className="flex items-center gap-2 text-muted-foreground">Your point of view is ready.
-          <Button size="sm" variant="outline" onClick={() => void bs.publishTreasureMap()}>Publish it to relays (kind 10040)</Button>
+      {state === 'computing' && <span className="flex items-center text-muted-foreground"><Loader2 className="mr-2 h-4 w-4 animate-spin" />Brainstorm is computing your point of view (a few minutes; this checks every minute)</span>}
+      {state === 'ready' && !hasMap && !author && (
+        <span className="flex flex-wrap items-center gap-2 text-muted-foreground">Your point of view is ready. Last step, one signature:
+          <Button size="sm" variant="outline" disabled={bs.state === 'busy'} onClick={() => void bs.publishTreasureMap()} title="Publishes your kind-10040 Treasure Map so any app (Gleaner included) knows where your scores live. Same as Brainstorm's 'Activate your account' step.">
+            {bs.state === 'busy' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Activate: publish my Treasure Map
+          </Button>
         </span>
       )}
       {bs.error && <span className="text-destructive">{bs.error}</span>}
