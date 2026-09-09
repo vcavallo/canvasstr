@@ -33,6 +33,8 @@ export function useArbiterActions(campaign: Campaign, ledger: Ledger | null) {
   const [queue, setQueue] = useState<Contribution[]>([]);
   const [shortlist, setShortlist] = useLocalStorage<string[]>(`canvasstr:shortlist:${campaignCoord(campaign)}`, []);
   const [refund, setRefund] = useState<PayRequest | null>(null);
+  /** Opt-in: also apply the accepted tag under the arbiter's own key. Off by default: judging a tag is not endorsing it personally. */
+  const [coApply, setCoApply] = useLocalStorage<boolean>(`canvasstr:co-apply:${campaignCoord(campaign)}`, false);
 
   const isArbiter = !!user && user.pubkey === campaign.arbiterPubkey;
   const coord = campaignCoord(campaign);
@@ -53,10 +55,10 @@ export function useArbiterActions(campaign: Campaign, ledger: Ledger | null) {
     try {
       await publish(buildAcceptanceTemplate({ campaign, contribution: c.event, payoutReceiptId: receipt.id, resolution: 'successful', relay: relays[0] }));
       await publishTo({ template: buildEndorsementTemplate(c.event, campaign.targets.find((t) => t.z === c.target)?.relay), relays: targetRelaysFor(c) }).catch(() => undefined);
-      // For tag campaigns the arbiter also applies the tag under their own key: a second application
-      // from a trusted asserter is what Tapestry's per-POV counting elevates. Items are not duplicated.
+      // Opt-in for tag campaigns: the arbiter also applies the tag under their own key, a second
+      // application from a trusted asserter, which Tapestry's per-POV counting elevates. Items are never duplicated.
       const target = campaign.targets.find((t) => t.z === c.target);
-      if (c.kindOfContribution === 'profile-tag' && c.taggedRef && target?.tagEventId && user) {
+      if (coApply && c.kindOfContribution === 'profile-tag' && c.taggedRef && target?.tagEventId && user) {
         await publishTo({ template: buildProfileTagTemplate({ taggedPubkey: c.taggedRef, tagCoord: c.tagCoord ?? target.z, tagEventId: target.tagEventId, asserterPubkey: user.pubkey, relay: target.relay }), relays: targetRelaysFor(c) }).catch(() => undefined);
       }
       toast({ title: 'Accepted and paid', description: c.label });
@@ -115,7 +117,7 @@ export function useArbiterActions(campaign: Campaign, ledger: Ledger | null) {
     title: `Refund ${formatSats(remainderSats)} to the patron`, description: 'The campaign closes when the receipt lands.',
   });
 
-  return { isArbiter, isPending, pending, refund, shortlist, queue, accept, reject, undoRejection, toggleShortlist, payShortlist, close, refundRemainder, remainderSats, onReceipt, setPending, setRefund };
+  return { isArbiter, isPending, pending, refund, shortlist, queue, coApply, setCoApply, accept, reject, undoRejection, toggleShortlist, payShortlist, close, refundRemainder, remainderSats, onReceipt, setPending, setRefund };
 }
 
 export type ArbiterActions = ReturnType<typeof useArbiterActions>;

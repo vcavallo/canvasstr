@@ -87,7 +87,7 @@ export function CreateCampaignDialog() {
           <div className="grid grid-cols-3 gap-3">
             <div className="space-y-1"><Label htmlFor="c-rate">Sats per contribution</Label><Input id="c-rate" type="number" min={1} value={rate} onChange={(e) => setRate(e.target.value)} /></div>
             <div className="space-y-1"><Label htmlFor="c-amount">Total escrow (sats)</Label><Input id="c-amount" type="number" min={1} value={amount} onChange={(e) => setAmount(e.target.value)} /></div>
-            <div className="space-y-1"><Label htmlFor="c-max">Max per person</Label><Input id="c-max" type="number" min={1} value={maxPerPubkey} onChange={(e) => setMaxPerPubkey(e.target.value)} placeholder="∞" /></div>
+            <div className="space-y-1"><Label htmlFor="c-max" title="How many of one person's entries can be paid in this campaign. Enforced by Canvasstr when judging, not by the protocol.">Max paid entries per person</Label><Input id="c-max" type="number" min={1} value={maxPerPubkey} onChange={(e) => setMaxPerPubkey(e.target.value)} placeholder="∞" /></div>
           </div>
           <p className="text-sm text-muted-foreground">{slots} slots before any arbiter fee.</p>
           <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={countExisting} onChange={(e) => setCountExisting(e.target.checked)} />Also count items already on the list (otherwise only new ones from now on)</label>

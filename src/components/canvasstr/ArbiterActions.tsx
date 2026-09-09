@@ -1,4 +1,7 @@
-import { Loader2 } from 'lucide-react';
+import { Info, Loader2 } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { isTagElementTarget } from '@/lib/contributions';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { formatSats } from '@/lib/catallax';
@@ -30,6 +33,16 @@ export function ArbiterPanel({ a, campaign, ledger }: { a: ArbiterActions; campa
     <Card>
       <CardContent className="flex flex-wrap items-center gap-3 p-4 text-sm">
         <span className="font-medium">You are the arbiter.</span>
+        {campaign.targets.some(isTagElementTarget) && (
+          <label className="flex items-center gap-2">
+            <Switch checked={a.coApply} onCheckedChange={a.setCoApply} aria-label="Also apply the tag myself when accepting" />
+            <span>Also apply the tag myself when accepting</span>
+            <Tooltip>
+              <TooltipTrigger asChild><button type="button" aria-label="What this does"><Info className="h-4 w-4 text-muted-foreground" /></button></TooltipTrigger>
+              <TooltipContent className="max-w-xs">When you accept and pay a tagging, Canvasstr also publishes the same tag on that profile under your own key. People whose point of view trusts you will then see the profile as tagged by you too, which lifts it in their lists. Leave this off if you are judging a tag you do not want to personally vouch for; you will still publish the upvote and the payment record either way.</TooltipContent>
+            </Tooltip>
+          </label>
+        )}
         {campaign.payout === 'terminal' && campaign.status === 'open' && (
           <Button size="sm" disabled={shortlisted === 0 || !!a.pending} onClick={a.payShortlist}>
             {a.pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Pay shortlist ({shortlisted} × {formatSats(campaign.rate)})
