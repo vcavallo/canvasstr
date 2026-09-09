@@ -87,14 +87,17 @@ export interface Lens {
   observer?: string;
   provider?: Provider;
   source: LensSource;
+  /** relay = kind-30382 from the observer's 10040 provider; http = Brainstorm batch API by observer pubkey. */
+  via?: 'relay' | 'http';
   /** Author-view: show only this pubkey's events, unranked. */
   author?: string;
 }
 
 export interface LensCandidates {
-  urlPov?: { observer: string; provider?: Provider };
-  self?: { observer: string; provider?: Provider };
-  defaultPov?: { observer: string; provider?: Provider };
+  /** `httpReady` = the observer has a computed POV on Brainstorm even without a 10040. */
+  urlPov?: { observer: string; provider?: Provider; httpReady?: boolean };
+  self?: { observer: string; provider?: Provider; httpReady?: boolean };
+  defaultPov?: { observer: string; provider?: Provider; httpReady?: boolean };
   houseProvider?: Provider;
   author?: string;
 }
@@ -102,10 +105,13 @@ export interface LensCandidates {
 /** PROTOCOL.md §8 resolution order. A candidate without a resolvable provider is skipped. */
 export function resolveLens(c: LensCandidates): Lens {
   if (c.author) return { source: 'author', author: c.author };
-  if (c.urlPov?.provider) return { source: 'url', observer: c.urlPov.observer, provider: c.urlPov.provider };
-  if (c.self?.provider) return { source: 'self', observer: c.self.observer, provider: c.self.provider };
-  if (c.defaultPov?.provider) return { source: 'default', observer: c.defaultPov.observer, provider: c.defaultPov.provider };
-  return { source: 'house', provider: c.houseProvider };
+  const pick = (source: LensSource, x?: { observer: string; provider?: Provider; httpReady?: boolean }): Lens | null => {
+    if (!x) return null;
+    if (x.provider) return { source, observer: x.observer, provider: x.provider, via: 'relay' };
+    if (x.httpReady) return { source, observer: x.observer, via: 'http' };
+    return null;
+  };
+  return pick('url', c.urlPov) ?? pick('self', c.self) ?? pick('default', c.defaultPov) ?? { source: 'house', provider: c.houseProvider, via: 'relay' };
 }
 
 /** Rank of a pubkey under the lens, or undefined when unscored (treated as 0 for filtering). */

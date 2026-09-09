@@ -17,7 +17,7 @@ export default function Home() {
   const { lens, minRank, setMinRank } = useLens();
   const { campaigns, eose, error } = useCampaigns();
   const pubkeys = useMemo(() => campaigns.flatMap((c) => [c.patronPubkey, c.arbiterPubkey ?? '']).filter(Boolean), [campaigns]);
-  const ranks = useRanks(lens.provider, pubkeys);
+  const ranks = useRanks(lens, pubkeys);
   const { config, presetRelays } = useAppContext();
   const activeRelays = useMemo(() => getActiveRelays(config, presetRelays), [config, presetRelays]);
   const authored = useAuthorContributions(lens.source === 'author' ? lens.author : undefined, campaigns, activeRelays);
@@ -26,7 +26,7 @@ export default function Home() {
 
   const visible = campaigns.filter((c) => {
     if (lens.source === 'author') return c.patronPubkey === lens.author || c.arbiterPubkey === lens.author;
-    if (!lens.provider || !ranks.data) return true; // no scores yet: show everything, badges say unscored
+    if ((!lens.provider && !lens.observer) || !ranks.data) return true; // no scores yet: show everything, badges say unscored
     return passesLens(scores, c.patronPubkey, minRank);
   });
   const hidden = campaigns.length - visible.length;
@@ -38,8 +38,8 @@ export default function Home() {
         <div className="flex items-center gap-3"><h2 className="text-lg font-medium">Campaigns</h2><CreateCampaignDialog /></div>
         <span className="text-sm text-muted-foreground">
           {eose ? `${visible.length} shown` : 'loading…'}
-          {eose && hidden > 0 && lens.source === 'author' && <span className="ml-2">{hidden} not by this author</span>}
-          {eose && hidden > 0 && lens.source !== 'author' && (
+          {hidden > 0 && lens.source === 'author' && <span className="ml-2">{hidden} not by this author</span>}
+          {hidden > 0 && lens.source !== 'author' && (
             <button type="button" className="ml-2 underline" onClick={() => setMinRank(0)}>{hidden} below min rank — show all</button>
           )}
         </span>

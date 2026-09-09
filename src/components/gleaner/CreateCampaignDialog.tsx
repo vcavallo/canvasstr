@@ -30,7 +30,7 @@ export function CreateCampaignDialog() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { data: arbiters = [] } = useArbiterAnnouncements();
-  const ranks = useRanks(lens.provider, useMemo(() => arbiters.map((a) => a.arbiterPubkey), [arbiters]));
+  const ranks = useRanks(lens, useMemo(() => arbiters.map((a) => a.arbiterPubkey), [arbiters]));
 
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState('');

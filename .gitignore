@@ -43,3 +43,4 @@ playwright-report/
 .direnv/
 .coinos-dev.json
 .env*
+.brainstorm-dev.json

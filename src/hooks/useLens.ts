@@ -5,6 +5,8 @@ import { useSearchParams } from 'react-router-dom';
 import { useCurrentUser } from './useCurrentUser';
 import { useLocalStorage } from './useLocalStorage';
 import { readLensEnv, toHexPubkey } from '@/lib/lensConfig';
+import { useHttpRanks } from './useBrainstorm';
+import { BRAINSTORM_API } from '@/lib/brainstorm';
 import {
   KIND_TREASURE_MAP, indexScores, parseTreasureMap, rankFilters, resolveLens,
   type Lens, type LensProviders, type Provider, type Score,
@@ -26,6 +28,25 @@ export function useTreasureMap(observer: string | undefined) {
       ).catch(() => []);
       const latest = events.sort((a, b) => b.created_at - a.created_at)[0];
       return latest ? parseTreasureMap(latest) : null;
+    },
+  });
+}
+
+/**
+ * Does Brainstorm have a computed POV for this observer? The batch endpoint silently serves
+ * global scores for an unknown observer (verified live), so readiness is read from
+ * /stats/pubkey with the personalised algorithm, which refuses with an error body.
+ */
+export function useHttpPovReady(observer: string | undefined) {
+  return useQuery<boolean>({
+    queryKey: ['brainstorm', 'pov-ready', observer ?? ''],
+    enabled: !!observer,
+    staleTime: 10 * 60_000,
+    queryFn: async () => {
+      const res = await fetch(`${BRAINSTORM_API}/stats/pubkey`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ pubkey: observer, pov: observer, algorithm: 'graperank-pov' }) }).catch(() => null);
+      if (!res || res.status !== 200) return false;
+      const body = (await res.json().catch(() => ({}))) as { error?: string };
+      return !body.error;
     },
   });
 }
@@ -55,16 +76,19 @@ export function useLens(): LensState {
   const urlMap = useTreasureMap(urlPov);
   const selfMap = useTreasureMap(self);
   const defaultMap = useTreasureMap(env.defaultPov);
+  const urlHttp = useHttpPovReady(urlPov && !urlMap.data?.rank ? urlPov : undefined);
+  const selfHttp = useHttpPovReady(self && !selfMap.data?.rank ? self : undefined);
+  const defaultHttp = useHttpPovReady(env.defaultPov && !defaultMap.data?.rank ? env.defaultPov : undefined);
 
   const lens = useMemo(() => resolveLens({
     author,
-    urlPov: urlPov ? { observer: urlPov, provider: urlMap.data?.rank } : undefined,
-    self: self ? { observer: self, provider: selfMap.data?.rank } : undefined,
-    defaultPov: env.defaultPov ? { observer: env.defaultPov, provider: defaultMap.data?.rank } : undefined,
+    urlPov: urlPov ? { observer: urlPov, provider: urlMap.data?.rank, httpReady: urlHttp.data } : undefined,
+    self: self ? { observer: self, provider: selfMap.data?.rank, httpReady: selfHttp.data } : undefined,
+    defaultPov: env.defaultPov ? { observer: env.defaultPov, provider: defaultMap.data?.rank, httpReady: defaultHttp.data } : undefined,
     houseProvider: env.houseProvider ? { pubkey: env.houseProvider, relay: env.nip85Relay } : undefined,
-  }), [author, urlPov, urlMap.data, self, selfMap.data, defaultMap.data]);
+  }), [author, urlPov, urlMap.data, urlHttp.data, self, selfMap.data, selfHttp.data, defaultMap.data, defaultHttp.data]);
 
-  const selfPov: LensState['selfPov'] = !self ? 'none' : selfMap.isLoading ? 'loading' : selfMap.data?.rank ? 'ready' : 'missing';
+  const selfPov: LensState['selfPov'] = !self ? 'none' : selfMap.isLoading || selfHttp.isLoading ? 'loading' : selfMap.data?.rank || selfHttp.data ? 'ready' : 'missing';
 
   const setParam = (name: string) => (v: string | undefined) => {
     const next = new URLSearchParams(params);
@@ -76,8 +100,15 @@ export function useLens(): LensState {
   return { lens, minRank, setMinRank, selfPov, urlPov, author, setAuthor: setParam('author'), setUrlPov: setParam('pov'), env };
 }
 
-/** Ranks for a set of pubkeys under a provider; unscored pubkeys are simply absent. */
-export function useRanks(provider: Provider | undefined, pubkeys: string[]) {
+/** Ranks for a set of pubkeys under a lens: kind-30382 via the observer's provider, or Brainstorm HTTP. */
+export function useRanks(lens: Pick<Lens, 'provider' | 'observer' | 'via' | 'source'> | Provider | undefined, pubkeys: string[]) {
+  const l: Pick<Lens, 'provider' | 'observer' | 'via'> = lens && 'pubkey' in lens ? { provider: lens, via: 'relay' } : (lens ?? {});
+  const relay = useRelayRanks(l.via === 'relay' ? l.provider : undefined, pubkeys);
+  const http = useHttpRanks(l.via === 'http' ? l.observer : undefined, pubkeys);
+  return l.via === 'http' ? { ...http, data: http.data?.scores, httpState: http.data?.state } : { ...relay, httpState: undefined };
+}
+
+function useRelayRanks(provider: Provider | undefined, pubkeys: string[]) {
   const { nostr } = useNostr();
   const sorted = useMemo(() => [...new Set(pubkeys)].sort(), [pubkeys]);
   return useQuery<Map<string, Score>>({

@@ -60,6 +60,8 @@ describe('resolveLens order', () => {
     expect(resolveLens({ urlPov: { observer: 'u', provider: prov }, self: { observer: 's', provider: prov } }).source).toBe('url');
     expect(resolveLens({ urlPov: { observer: 'u' }, self: { observer: 's', provider: prov } }).source).toBe('self');
     expect(resolveLens({ self: { observer: 's' }, defaultPov: { observer: 'd', provider: prov } }).source).toBe('default');
-    expect(resolveLens({ houseProvider: prov })).toEqual({ source: 'house', provider: prov });
+    expect(resolveLens({ houseProvider: prov })).toEqual({ source: 'house', provider: prov, via: 'relay' });
+    expect(resolveLens({ urlPov: { observer: 'u', httpReady: true }, self: { observer: 's', provider: prov } })).toMatchObject({ source: 'url', via: 'http' });
+    expect(resolveLens({ self: { observer: 's' }, houseProvider: prov }).source).toBe('house');
   });
 });

@@ -37,7 +37,7 @@ export default function CampaignBoard() {
     campaign?.patronPubkey ?? '', campaign?.arbiterPubkey ?? '',
     ...(ledger?.rows.map((r) => r.contribution.pubkey) ?? []),
   ].filter(Boolean), [campaign, ledger]);
-  const ranks = useRanks(lens.provider, pubkeys);
+  const ranks = useRanks(lens, pubkeys);
   const scores = ranks.data ?? new Map();
   const unranked = lens.source === 'author';
 
@@ -92,7 +92,7 @@ export default function CampaignBoard() {
       {eose && shownRows.length === 0 && <p className="text-muted-foreground">Nothing yet. Contributions appear here the moment they hit the relays.</p>}
       <ul className="space-y-2">
         {shownRows.map((row) => {
-          const dim = !unranked && !!lens.provider && !!ranks.data && !passesLens(scores, row.contribution.pubkey, minRank) && row.status === 'candidate';
+          const dim = !unranked && (!!lens.provider || !!lens.observer) && !!ranks.data && !passesLens(scores, row.contribution.pubkey, minRank) && row.status === 'candidate';
           return (
             <BoardRow key={row.contribution.ref} row={row} score={scores.get(row.contribution.pubkey)} unranked={unranked} dim={dim} relays={boardRelays}>
               <ArbiterRowControls row={row} a={arbiter} campaign={campaign} />

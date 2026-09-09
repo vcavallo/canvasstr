@@ -8,3 +8,4 @@
 - 2026-09-07 — M5 contributor flow: publish DList items straight from a campaign; profiles resolve from target relays; "count existing items" option. Tapestry confirmed direct publish is the integration.
 - 2026-09-08 — First live Lightning payout via Coinos on relay.grantless.org (review 0006). Fixed: LNURL comment broke Coinos zap receipts.
 - 2026-09-08 — Header-driven item form (required/recommended/allowed + field-type from the 39998), full item details on every board row.
+- 2026-09-08 — Deployed to Vercel (gleaner-three.vercel.app). Brainstorm integration: HTTP score backend for the lens, one-click POV creation, 10040 publish (ADR 0003).
