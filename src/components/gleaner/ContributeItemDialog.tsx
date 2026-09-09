@@ -6,6 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { useLens } from '@/hooks/useLens';
+import { useProfileSearch } from '@/hooks/useProfileSearch';
+import { genUserName } from '@/lib/genUserName';
 import { useDlistHeader } from '@/hooks/useDlistHeader';
 import { usePublishTo } from '@/hooks/usePublishTo';
 import { useToast } from '@/hooks/useToast';
@@ -30,6 +33,10 @@ export function ContributeItemDialog({ campaign, relays }: { campaign: Campaign;
   const header = useDlistHeader(target?.z, headerRelays);
   const [values, setValues] = useState<Record<string, string>>({});
   const [error, setError] = useState('');
+  const [who, setWho] = useState('');
+  const { lens } = useLens();
+  const whoSearch = useProfileSearch(values.p ? '' : who, lens.observer);
+  const [whoName, setWhoName] = useState('');
 
   if (!user || itemTargets.length === 0 || campaign.status !== 'open' || !target) return null;
   const isInsider = user.pubkey === campaign.patronPubkey || user.pubkey === campaign.arbiterPubkey;
@@ -71,7 +78,24 @@ export function ContributeItemDialog({ campaign, relays }: { campaign: Campaign;
             {schema?.fields.map((f) => (
               <div key={f.name} className="space-y-1">
                 <Label htmlFor={`ci-${f.name}`}>{f.name}{f.level === 'required' ? <span className="text-destructive"> *</span> : <span className="text-muted-foreground"> ({f.level === 'recommended' ? 'recommended' : 'optional'})</span>}</Label>
-                {f.type === 'textarea' || f.name === 'description'
+                {f.name === 'p' ? (
+                  values.p ? (
+                    <div className="flex items-center justify-between rounded-md border px-3 py-2 text-sm"><span className="font-medium">{whoName}</span><Button size="sm" variant="ghost" onClick={() => { set('p', ''); setWho(''); }}>change</Button></div>
+                  ) : (
+                    <>
+                      <Input id={`ci-${f.name}`} value={who} onChange={(e) => setWho(e.target.value)} placeholder="npub… or search by name" />
+                      {who.trim().length >= 2 && (
+                        <ul className="max-h-40 overflow-y-auto rounded-md border text-sm">
+                          {whoSearch.isLoading && <li className="p-2 text-muted-foreground">Searching…</li>}
+                          {(whoSearch.data ?? []).map((h) => { const name = h.metadata.display_name || h.metadata.name || genUserName(h.pubkey); return (
+                            <li key={h.pubkey}><button type="button" className="flex w-full items-center gap-2 px-2 py-1.5 text-left hover:bg-muted" onClick={() => { set('p', h.pubkey); setWhoName(name); }}>
+                              {h.metadata.picture && <img src={h.metadata.picture} alt="" className="h-6 w-6 rounded-full object-cover" />}<span className="font-medium">{name}</span>{h.metadata.nip05 && <span className="truncate text-xs text-muted-foreground">{h.metadata.nip05}</span>}
+                            </button></li>); })}
+                        </ul>
+                      )}
+                    </>
+                  )
+                ) : f.type === 'textarea' || f.name === 'description'
                   ? <Textarea id={`ci-${f.name}`} value={values[f.name] ?? ''} onChange={(e) => set(f.name, e.target.value)} placeholder={f.description ?? f.name} />
                   : <Input id={`ci-${f.name}`} value={values[f.name] ?? ''} onChange={(e) => set(f.name, e.target.value)} placeholder={f.description ?? f.name} />}
               </div>
