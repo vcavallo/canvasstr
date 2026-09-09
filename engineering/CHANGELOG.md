@@ -11,3 +11,4 @@
 - 2026-09-08 — Deployed to Vercel (gleaner-three.vercel.app). Brainstorm integration: HTTP score backend for the lens, one-click POV creation, 10040 publish (ADR 0003).
 - 2026-09-09 — NIP-25 votes on contributions: live tally per coordinate, lens-weighted counts (network / total), up/down buttons for logged-in viewers.
 - 2026-09-09 — Rows show author-claimed submission time and mark later duplicates of the same item ("same as #N").
+- 2026-09-09 — Row layout: identity group + right-aligned meta group that wraps as a unit. Arbiter can reverse their own rejection (NIP-09 kind 5 honoured by the ledger).

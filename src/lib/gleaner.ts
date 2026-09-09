@@ -302,3 +302,11 @@ export function buildEndorsementTemplate(contribution: Pick<NostrEvent, 'id' | '
   if (contribution.kind >= 30000 && contribution.kind < 40000) tags.push(['a', contributionRef(contribution), relay ?? '']);
   return { kind: 7, content: '+', tags };
 }
+
+/**
+ * NIP-09 deletion of one of the arbiter's own 3402s (e.g. reversing a rejection). Carries the
+ * campaign `a` so the board's settlement subscription (`#a` campaign) sees it. PROTOCOL.md §4.
+ */
+export function buildConclusionRetractionTemplate(conclusionId: string, campaign: Pick<Campaign, 'patronPubkey' | 'd'>, reason = ''): EventTemplate {
+  return { kind: 5, content: reason, tags: [['e', conclusionId], ['a', campaignCoord(campaign)], ['k', String(CATALLAX_KINDS.TASK_CONCLUSION)]] };
+}

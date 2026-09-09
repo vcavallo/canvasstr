@@ -26,7 +26,7 @@ export function useCampaignBoard(campaign: Campaign | null, activeRelays: string
     return [...set];
   }, [campaign, activeRelays]);
   const settlementFilters = useMemo<NostrFilter[] | null>(
-    () => (coord ? [{ kinds: [CATALLAX_KINDS.TASK_CONCLUSION, 9735], '#a': [coord] }] : null),
+    () => (coord ? [{ kinds: [CATALLAX_KINDS.TASK_CONCLUSION, 9735, 5], '#a': [coord] }] : null),
     [coord],
   );
 
@@ -40,7 +40,7 @@ export function useCampaignBoard(campaign: Campaign | null, activeRelays: string
   const ledger = useMemo<Ledger | null>(() => {
     if (!campaign) return null;
     const cs = contributionList;
-    const conclusions = settlement.events.filter((e) => e.kind === CATALLAX_KINDS.TASK_CONCLUSION);
+    const conclusions = settlement.events.filter((e) => e.kind === CATALLAX_KINDS.TASK_CONCLUSION || e.kind === 5);
     const receipts = settlement.events.filter((e) => e.kind === 9735);
     return buildLedger(campaign, cs, conclusions, receipts);
   }, [campaign, contributionList, settlement.events]);

@@ -8,7 +8,7 @@ import { usePublishTo } from '@/hooks/usePublishTo';
 import { useToast } from '@/hooks/useToast';
 import { formatSats } from '@/lib/catallax';
 import type { Contribution } from '@/lib/contributions';
-import { buildAcceptanceTemplate, buildCampaignFinalTemplate, buildCampaignTemplate, buildEndorsementTemplate, campaignCoord, campaignToInput, type Campaign } from '@/lib/gleaner';
+import { buildAcceptanceTemplate, buildCampaignFinalTemplate, buildCampaignTemplate, buildConclusionRetractionTemplate, buildEndorsementTemplate, campaignCoord, campaignToInput, type Campaign } from '@/lib/gleaner';
 import type { Ledger } from '@/lib/ledger';
 import { getActiveRelays } from '@/lib/relays';
 import type { PayRequest } from '@/components/gleaner/PayDialog';
@@ -77,6 +77,12 @@ export function useArbiterActions(campaign: Campaign, ledger: Ledger | null) {
     } catch (e) { fail('Could not publish the rejection', e); }
   };
 
+  /** Reverse a rejection: NIP-09 delete of the arbiter's own 3402. */
+  const undoRejection = async (conclusionId: string) => {
+    try { await publish(buildConclusionRetractionTemplate(conclusionId, campaign, 'rejection reversed')); toast({ title: 'Rejection reversed' }); }
+    catch (e) { fail('Could not reverse the rejection', e); }
+  };
+
   const toggleShortlist = (c: Contribution) => setShortlist(shortlist.includes(c.id) ? shortlist.filter((id) => id !== c.id) : [...shortlist, c.id]);
 
   /** Terminal: pay every shortlisted candidate, one dialog after another. */
@@ -102,7 +108,7 @@ export function useArbiterActions(campaign: Campaign, ledger: Ledger | null) {
     title: `Refund ${formatSats(remainderSats)} to the patron`, description: 'The campaign closes when the receipt lands.',
   });
 
-  return { isArbiter, isPending, pending, refund, shortlist, queue, accept, reject, toggleShortlist, payShortlist, close, refundRemainder, remainderSats, onReceipt, setPending, setRefund };
+  return { isArbiter, isPending, pending, refund, shortlist, queue, accept, reject, undoRejection, toggleShortlist, payShortlist, close, refundRemainder, remainderSats, onReceipt, setPending, setRefund };
 }
 
 export type ArbiterActions = ReturnType<typeof useArbiterActions>;

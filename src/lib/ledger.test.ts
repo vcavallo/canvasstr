@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { NostrEvent } from '@nostrify/nostrify';
 import { buildLedger } from './ledger';
 import { collectContributions } from './contributions';
-import { buildAcceptanceTemplate, buildCampaignFinalTemplate, buildCampaignTemplate, parseCampaign } from './gleaner';
+import { buildAcceptanceTemplate, buildCampaignFinalTemplate, buildCampaignTemplate, buildConclusionRetractionTemplate, parseCampaign } from './gleaner';
 import { asEvent } from '@/test/fixtures';
 
 const PATRON = 'a'.repeat(64);
@@ -78,6 +78,16 @@ describe('buildLedger', () => {
     const dup2 = item(bob, 'a1-copy', 46); dup2.tags = dup2.tags.map((tg) => (tg[0] === 'name' ? ['name', 'A1'] : tg));
     const l2 = buildLedger(campaign, collectContributions([...events, dup2], campaign.targets), [], []);
     expect(l2.rows.find((r) => r.contribution.id === 'a1-copy-2222')!.duplicateOf).toBe(first.position);
+  });
+
+  it('an arbiter-signed kind-5 reverses their own rejection; a stranger\'s does not', () => {
+    const rej = asEvent(buildAcceptanceTemplate({ campaign, contribution: events[1], resolution: 'rejected' }), ARBITER, 61, 'rej-id');
+    const undo = asEvent(buildConclusionRetractionTemplate('rej-id', campaign), ARBITER, 62);
+    const forgedUndo = asEvent(buildConclusionRetractionTemplate('rej-id', campaign), bob, 63);
+    expect(buildLedger(campaign, contributions, [rej], []).rows[1].status).toBe('rejected');
+    expect(buildLedger(campaign, contributions, [rej, forgedUndo], []).rows[1].status).toBe('rejected');
+    expect(buildLedger(campaign, contributions, [rej, undo], []).rows[1].status).toBe('candidate');
+    expect(undo.tags).toContainEqual(['a', `33401:${PATRON}:places`]);
   });
 
   it('picks up the final conclusion', () => {

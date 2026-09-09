@@ -78,10 +78,15 @@ export function buildLedger(
   opts: { arbiterFeeSats?: number } = {},
 ): Ledger {
   const arbiter = campaign.arbiterPubkey;
+  const retracted = new Set<string>();
+  for (const e of conclusions) {
+    if (e.kind === 5 && (!arbiter || e.pubkey === arbiter)) for (const [n, v] of e.tags) if (n === 'e' && v) retracted.add(v);
+  }
   const acceptances = new Map<string, Acceptance>();
   let final: CampaignFinal | undefined;
   for (const e of conclusions) {
     if (arbiter && e.pubkey !== arbiter) continue; // only the arbiter's word counts
+    if (retracted.has(e.id)) continue; // NIP-09 by the arbiter reverses their own 3402
     const a = parseAcceptance(e);
     if (!a) continue;
     if (a.isFinal) { if (!final || a.created_at > final.created_at) final = a; continue; }

@@ -8,7 +8,9 @@ import type { ArbiterActions } from '@/hooks/useArbiterActions';
 import { PayDialog } from './PayDialog';
 
 export function ArbiterRowControls({ row, a, campaign }: { row: LedgerRow; a: ArbiterActions; campaign: Campaign }) {
-  if (!a.isArbiter || row.status !== 'candidate' || campaign.status !== 'open') return null;
+  if (!a.isArbiter || campaign.status !== 'open') return null;
+  if (row.status === 'rejected' && row.acceptance) return <Button size="sm" variant="ghost" className="h-7" disabled={a.isPending} onClick={() => a.undoRejection(row.acceptance!.id)}>Undo rejection</Button>;
+  if (row.status !== 'candidate') return null;
   const c = row.contribution;
   const listed = a.shortlist.includes(c.id);
   return (

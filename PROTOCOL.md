@@ -116,7 +116,10 @@ Existing clients read `e` positionally (payout, task) and ignore the third `e`; 
 "was this contribution accepted?" answerable with `{"kinds":[3402],"#e":[<contribution id>]}`.
 
 A 3402 with `resolution rejected`, no payout receipt, and the same `contribution` tags records
-an explicit rejection. Rejections are optional; silence is the default.
+an explicit rejection. Rejections are optional; silence is the default. The arbiter may reverse
+their own 3402 with a NIP-09 kind 5 carrying `e` (the 3402 id) and `a` (the campaign
+coordinate); readers MUST ignore a 3402 so retracted and MUST ignore kind 5s not signed by the
+arbiter.
 
 **Closing the campaign.** The arbiter publishes one final 3402 with no worker `p`, resolution
 `successful` (slots exhausted or deadline reached) or `cancelled` (patron withdrew), the refund
