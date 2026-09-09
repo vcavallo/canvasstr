@@ -12,3 +12,4 @@
 - 2026-09-09 — NIP-25 votes on contributions: live tally per coordinate, lens-weighted counts (network / total), up/down buttons for logged-in viewers.
 - 2026-09-09 — Rows show author-claimed submission time and mark later duplicates of the same item ("same as #N").
 - 2026-09-09 — Row layout: identity group + right-aligned meta group that wraps as a unit. Arbiter can reverse their own rejection (NIP-09 kind 5 honoured by the ledger).
+- 2026-09-09 — Details dialog on every contribution (all fields, content, target, contributor, time, coordinate, raw event); rows show two fields inline.
