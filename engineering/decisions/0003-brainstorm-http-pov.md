@@ -28,6 +28,17 @@ observer's assistant key), `POST /user/graperank` to queue a calculation, `GET /
 - Brainstorm's per-IP limit (3 calculations / 30 min) and its 30-minute re-trigger cooldown
   (403) are surfaced as errors, not worked around.
 
+## Amendment 2026-09-09: activation
+Brainstorm-UI's "Activate your account (required for other apps)" step is purely client-side: sign and
+publish the kind-10040 built from `GET /setup/{pk}`. The server records nothing on activation and
+neither calculation nor 30382 publication waits on it (brainstorm_server session, verified against
+source). Gleaner's "Activate: publish my Treasure Map" button is therefore the complete step; it
+publishes to the nip85 relay, the rows' score relay, and the common public relays.
+`last_time_calculated_graperank` stays null after a failed run (no scorecards), so readiness is
+derived from the request status (`success`) and the stats probe, not that timestamp; polling stops
+after 30 minutes because a wedged run stays `ongoing` for hours server-side. The request row
+includes a `password` field that must never be rendered or logged.
+
 ## Consequences
 - The default lens is Vinney's POV only once it is computed on api.brainstorm.world; until
   then it falls to the house provider over relay. Vinney should press the button once.
