@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNostr } from '@nostrify/react';
 import { useCurrentUser } from './useCurrentUser';
+import { useUserRelays } from './useUserRelays';
 import { useLocalStorage } from './useLocalStorage';
 import { usePublishTo } from './usePublishTo';
 import { readLensEnv } from '@/lib/lensConfig';
@@ -72,6 +73,7 @@ export function useBrainstormAccount(): BrainstormAccount {
   const [busy, setBusy] = useState(false);
   const { mutateAsync: publishTo } = usePublishTo();
   const qc = useQueryClient();
+  const userRelays = useUserRelays(pk);
 
   const history = useQuery<{ history: BrainstormHistory | null; result?: ReturnType<typeof parseResultStatus> }>({
     queryKey: ['brainstorm', 'history', pk ?? '', !!token],
@@ -131,12 +133,15 @@ export function useBrainstormAccount(): BrainstormAccount {
       const r = await api<string[][]>(`/setup/${pk}`);
       const rows = Array.isArray(r.body) ? r.body.filter(isTreasureMapRow) : [];
       if (rows.length === 0) throw new Error('Brainstorm has no delegation rows for you yet.');
-      const relays = [...new Set([env.nip85Relay, ...rows.map((row) => row[2]).filter((x) => /^wss:\/\//.test(x)), ...env.receiptRelays])];
+      // The map must be findable: nip85 relay + the rows' score relay + public relays + the user's own
+      // NIP-65 write relays. Publish resolves when any relay accepts, so one stalled relay is non-fatal.
+      const own = (userRelays.data ?? []).filter((x: string) => /^wss:\/\//.test(x));
+      const relays = [...new Set([env.nip85Relay, ...rows.map((row) => row[2]).filter((x) => /^wss:\/\//.test(x)), ...env.receiptRelays, ...own])];
       await publishTo({ template: { kind: KIND_TREASURE_MAP, content: '', tags: rows }, relays });
       await qc.invalidateQueries({ queryKey: ['lens', 'treasure-map', pk] });
     } catch (e) { setError(e instanceof Error ? e.message : String(e)); }
     finally { setBusy(false); }
-  }, [pk, publishTo, qc]);
+  }, [pk, publishTo, qc, userRelays.data]);
 
   // Once a calculation completes, refresh any HTTP ranks read under this POV.
   const st = povState(history.data?.history ?? null, history.data?.result);
