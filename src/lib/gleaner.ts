@@ -318,3 +318,21 @@ export function buildEndorsementTemplate(contribution: Pick<NostrEvent, 'id' | '
 export function buildConclusionRetractionTemplate(conclusionId: string, campaign: Pick<Campaign, 'patronPubkey' | 'd'>, reason = ''): EventTemplate {
   return { kind: 5, content: reason, tags: [['e', conclusionId], ['a', campaignCoord(campaign)], ['k', String(CATALLAX_KINDS.TASK_CONCLUSION)]] };
 }
+
+/** NIP-09 deletion of a campaign by its patron: `a` coordinate (covers every version) + known ids. */
+export function buildCampaignDeletionTemplate(c: Pick<Campaign, 'patronPubkey' | 'd' | 'id'>, reason = ''): EventTemplate {
+  return { kind: 5, content: reason, tags: [['a', campaignCoord(c)], ['e', c.id], ['k', String(CATALLAX_KINDS.TASK_PROPOSAL)]] };
+}
+
+/** Coordinates deleted by their own patron (kind 5 with an `a` 33401 coordinate, signed by that patron). */
+export function deletedCampaignCoords(events: NostrEvent[]): Set<string> {
+  const out = new Set<string>();
+  for (const e of events) {
+    if (e.kind !== 5) continue;
+    for (const [n, v] of e.tags) {
+      if (n !== 'a' || !v?.startsWith(`${CATALLAX_KINDS.TASK_PROPOSAL}:`)) continue;
+      if (v.split(':')[1] === e.pubkey) out.add(v);
+    }
+  }
+  return out;
+}

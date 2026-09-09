@@ -32,7 +32,7 @@ export default function CampaignBoard() {
   const addr = decodeCampaignNaddr(naddr);
   const { config, presetRelays } = useAppContext();
   const activeRelays = useMemo(() => getActiveRelays(config, presetRelays), [config, presetRelays]);
-  const { campaign, eose: campaignEose } = useCampaign(addr?.pubkey, addr?.identifier);
+  const { campaign, deleted, eose: campaignEose } = useCampaign(addr?.pubkey, addr?.identifier);
   const { ledger, votes, eose, relays: boardRelays } = useCampaignBoard(campaign, activeRelays);
   const { user } = useCurrentUser();
   const voterPubkeys = useMemo(() => [...new Set(votes.map((v) => v.pubkey))], [votes]);
@@ -50,6 +50,7 @@ export default function CampaignBoard() {
   const tallies = useMemo(() => tallyVotes(ledger?.rows.map((r) => r.contribution) ?? [], votes, { scores: weighted ? scores : undefined, minRank, viewer: user?.pubkey }), [ledger, votes, scores, weighted, minRank, user?.pubkey]);
 
   if (!addr) return <Layout><p className="text-destructive">Not a campaign address.</p></Layout>;
+  if (deleted) return <Layout><p className="text-muted-foreground">This campaign was deleted by its patron.</p></Layout>;
   if (!campaign) {
     return <Layout>{campaignEose ? <p className="text-muted-foreground">No campaign found at this address on the active relays.</p> : <Skeleton className="h-40" />}</Layout>;
   }

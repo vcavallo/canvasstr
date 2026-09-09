@@ -127,6 +127,10 @@ receipt for any remainder at `e` position 0 (or a mock receipt if nothing to ref
 `["campaign_final", "1"]`. The patron or arbiter then republishes the 33401 with
 `status concluded`.
 
+A patron may delete their campaign with a NIP-09 kind 5 carrying `["a", "33401:<patron>:<d>"]`
+and `["k", "33401"]`. Readers hide a campaign whose coordinate is deleted by its own patron;
+existing 3402s and receipts remain on the record.
+
 ## 5. Payment
 
 Escrow flows exactly as in Catallax: patron (or crowd, via the 9041 goal) → arbiter's Lightning

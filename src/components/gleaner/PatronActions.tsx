@@ -10,7 +10,9 @@ import { useNostrPublish } from '@/hooks/useNostrPublish';
 import { useToast } from '@/hooks/useToast';
 import { useZapGoal } from '@/hooks/useZapGoal';
 import { buildZapGoalTemplate, formatSats } from '@/lib/catallax';
-import { buildCampaignTemplate, campaignCoord, campaignToInput, type Campaign } from '@/lib/gleaner';
+import { buildCampaignDeletionTemplate, buildCampaignTemplate, campaignCoord, campaignToInput, type Campaign } from '@/lib/gleaner';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { useNavigate } from 'react-router-dom';
 import { getActiveRelays } from '@/lib/relays';
 import { PayDialog, type PayRequest } from './PayDialog';
 
@@ -27,6 +29,7 @@ export function PatronActions({ campaign }: { campaign: Campaign }) {
   const { toast } = useToast();
   const { data: goalData } = useZapGoal(campaign.goalId);
   const [pay, setPay] = useState<PayRequest | null>(null);
+  const navigate = useNavigate();
 
   const isPatron = user?.pubkey === campaign.patronPubkey;
   const isArbiter = user?.pubkey === campaign.arbiterPubkey;
@@ -77,8 +80,28 @@ export function PatronActions({ campaign }: { campaign: Campaign }) {
     });
   };
 
+  const deleteCampaign = async () => {
+    try {
+      await publish(buildCampaignDeletionTemplate(campaign, 'campaign deleted by patron'));
+      toast({ title: 'Campaign deleted', description: 'Relays that honour deletions will drop it; Gleaner hides it everywhere.' });
+      navigate('/');
+    } catch (e) { toast({ title: 'Delete failed', description: e instanceof Error ? e.message : String(e), variant: 'destructive' }); }
+  };
+  const deleteControl = isPatron && (
+    <AlertDialog>
+      <AlertDialogTrigger asChild><Button size="sm" variant="ghost" className="text-destructive" disabled={isPending}>Delete campaign</Button></AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Delete this campaign?</AlertDialogTitle>
+          <AlertDialogDescription>Publishes a deletion request (NIP-09) for the campaign. Payments already made and acceptances already published stay on the record. Escrow is not refunded by this.</AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter><AlertDialogCancel>Keep it</AlertDialogCancel><AlertDialogAction onClick={deleteCampaign}>Delete</AlertDialogAction></AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+
   if (!campaign.arbiterPubkey) return <p className="text-sm text-destructive">This campaign has no arbiter and cannot be funded.</p>;
-  if (campaign.status === 'concluded') return null;
+  if (campaign.status === 'concluded') return deleteControl ? <div>{deleteControl}</div> : null;
 
   return (
     <Card>
@@ -107,6 +130,7 @@ export function PatronActions({ campaign }: { campaign: Campaign }) {
           <Button size="sm" disabled={isPending} onClick={() => republish({ status: 'open' }, 'Open for contributions')}>{isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Open for contributions</Button>
         )}
         {campaign.status === 'open' && <p className="text-muted-foreground">Open. Contributions to the target lists are being judged by the arbiter.</p>}
+        {deleteControl}
         <PayDialog request={pay} onReceipt={(r) => { setPay(null); if (!crowd) void markFunded(r); }} onClose={() => setPay(null)} />
       </CardContent>
     </Card>

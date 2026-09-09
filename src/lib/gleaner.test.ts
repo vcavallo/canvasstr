@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { parseTaskProposal, parseTaskConclusion } from './catallax';
 import {
-  acceptedKinds, buildAcceptanceTemplate, buildEndorsementTemplate, buildCampaignFinalTemplate, buildCampaignTemplate, campaignSlots,
+  acceptedKinds, buildAcceptanceTemplate, buildCampaignDeletionTemplate, buildEndorsementTemplate, deletedCampaignCoords, buildCampaignFinalTemplate, buildCampaignTemplate, campaignSlots,
   campaignToInput, isCampaignEvent, latestAuthoritativeCampaign, markCampaignStatus, parseAcceptance, parseCampaign,
   type CampaignInput,
 } from './gleaner';
@@ -161,5 +161,15 @@ describe('buildEndorsementTemplate', () => {
     expect(t.tags).toContainEqual(['e', 'x', 'wss://r']);
     expect(t.tags).toContainEqual(['a', `39999:${CONTRIB}:sushi`, 'wss://r']);
     expect(t.tags).toContainEqual(['k', '39999']);
+  });
+});
+
+describe('campaign deletion', () => {
+  it('only the patron can delete, by coordinate', () => {
+    const c = { patronPubkey: PATRON, d: 'x', id: 'id1' };
+    const del = asEvent(buildCampaignDeletionTemplate(c), PATRON, 1);
+    const forged = asEvent(buildCampaignDeletionTemplate(c), ARBITER, 2);
+    expect(deletedCampaignCoords([forged])).toEqual(new Set());
+    expect(deletedCampaignCoords([del, forged])).toEqual(new Set([`33401:${PATRON}:x`]));
   });
 });
