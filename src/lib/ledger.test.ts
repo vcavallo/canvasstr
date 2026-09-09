@@ -68,6 +68,18 @@ describe('buildLedger', () => {
     expect(full.remaining).toBe(0);
     expect(full.rows.every((r) => r.status === 'paid' || !r.fundable)).toBe(true);
   });
+  it('marks later submissions of the same thing as duplicates of the first (time order)', () => {
+    const dup = item(carol, 'sushi-kaji-again', 45); dup.tags = dup.tags.map((tg) => (tg[0] === 'name' ? ['name', '  SUSHI  Kaji '] : tg));
+    const l = buildLedger(campaign, collectContributions([...events, dup], campaign.targets), [], []);
+    const first = l.rows.find((r) => r.contribution.label === 'a1')!;
+    const later = l.rows.find((r) => r.contribution.pubkey === carol && r.contribution.label.includes('Kaji'))!;
+    expect(first.duplicateOf).toBeUndefined();
+    expect(later.duplicateOf).toBeUndefined(); // 'a1' ≠ 'sushi kaji'
+    const dup2 = item(bob, 'a1-copy', 46); dup2.tags = dup2.tags.map((tg) => (tg[0] === 'name' ? ['name', 'A1'] : tg));
+    const l2 = buildLedger(campaign, collectContributions([...events, dup2], campaign.targets), [], []);
+    expect(l2.rows.find((r) => r.contribution.id === 'a1-copy-2222')!.duplicateOf).toBe(first.position);
+  });
+
   it('picks up the final conclusion', () => {
     const fin = asEvent(buildCampaignFinalTemplate({ campaign, resolution: 'successful' }), ARBITER, 99);
     expect(buildLedger(campaign, contributions, [fin], []).final?.resolution).toBe('successful');

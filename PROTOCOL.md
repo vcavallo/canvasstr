@@ -87,6 +87,11 @@ Rules for counting a candidate:
 - Taggings with `polarity -1` (disputes) do not count unless the campaign says so in its
   requirements.
 - Everything is a **candidate** until the arbiter accepts it. Relay hits are never truth.
+- Rows are ordered by the contribution's `created_at`, and a later submission of the same thing
+  is marked as a duplicate of the earliest. `created_at` is the author's claim; a relay may
+  reject absurd values but nothing here can verify it. Gleaner does not try: an author who
+  backdates to jump the queue is exactly the kind of behaviour the lens (GrapeRank from the
+  viewer's point of view) is meant to price in over time.
 - The arbiter may use any web-of-trust signal (a viewer's GrapeRank via kind 30382 / Open
   Ranking) to triage, but WoT never pays anyone; a human accepts.
 

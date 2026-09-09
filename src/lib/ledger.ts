@@ -22,6 +22,8 @@ export interface LedgerRow {
   position: number;
   /** False when this row is beyond the slots the escrow can pay. */
   fundable: boolean;
+  /** Position of the earliest row submitting the same thing to the same target, if any. */
+  duplicateOf?: number;
 }
 
 export interface Ledger {
@@ -61,6 +63,13 @@ function indexReceipts(receipts: NostrEvent[], payers: Set<string>): Map<string,
   return byContribution;
 }
 
+/** What two contributions must agree on to be "the same item": target + primary value, case/space-insensitive. */
+export function contributionKey(c: Pick<Contribution, 'target' | 'label' | 'taggedRef' | 'tagCoord' | 'kindOfContribution'>): string {
+  const norm = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+  const value = c.kindOfContribution === 'item' ? norm(c.label) : `${c.taggedRef ?? ''}|${c.tagCoord ?? ''}`;
+  return `${c.target}|${value}`;
+}
+
 export function buildLedger(
   campaign: Campaign,
   contributions: Contribution[],
@@ -84,6 +93,7 @@ export function buildLedger(
   const perPubkey = new Map<string, number>();
 
   const rows: LedgerRow[] = [];
+  const firstByKey = new Map<string, number>();
   let held = 0;
   let paid = 0;
   let rejected = 0;
@@ -100,7 +110,11 @@ export function buildLedger(
     const overCap = campaign.maxPerPubkey !== undefined && count >= campaign.maxPerPubkey && !consumesSlot;
     const fundable = consumesSlot || (!overCap && held + paid < slots);
     if (consumesSlot) { perPubkey.set(c.pubkey, count + 1); if (status === 'paid') paid++; else held++; }
-    rows.push({ contribution: c, status, acceptance, receipt: paidInfo?.receipt, paidSats: paidInfo?.sats, position: rows.length + 1, fundable });
+    const key = contributionKey(c);
+    const position = rows.length + 1;
+    const duplicateOf = firstByKey.get(key);
+    if (duplicateOf === undefined) firstByKey.set(key, position);
+    rows.push({ contribution: c, status, acceptance, receipt: paidInfo?.receipt, paidSats: paidInfo?.sats, position, fundable, duplicateOf });
   }
   return { rows, slots, accepted: held + paid, paid, rejected, remaining: Math.max(0, slots - held - paid), final };
 }
