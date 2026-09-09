@@ -102,7 +102,7 @@ export default function CampaignBoard() {
         {shownRows.map((row) => {
           const dim = !unranked && (!!lens.provider || !!lens.observer) && !!ranks.data && !passesLens(scores, row.contribution.pubkey, minRank) && row.status === 'candidate';
           return (
-            <BoardRow key={row.contribution.ref} row={row} score={scores.get(row.contribution.pubkey)} unranked={unranked} dim={dim} relays={boardRelays}
+            <BoardRow key={row.contribution.ref} row={row} score={scores.get(row.contribution.pubkey)} unranked={unranked} dim={dim} relays={boardRelays} arbiterView={arbiter.isArbiter}
               votes={<VoteButtons contribution={row.contribution} tally={tallies.get(row.contribution.ref)} relays={boardRelays} weighted={weighted} />}>
               <ArbiterRowControls row={row} a={arbiter} campaign={campaign} />
             </BoardRow>

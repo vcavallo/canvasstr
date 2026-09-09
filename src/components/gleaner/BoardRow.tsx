@@ -27,7 +27,7 @@ function describe(row: LedgerRow): string {
   }
 }
 
-export function BoardRow({ row, score, unranked, dim, relays, votes, children }: { row: LedgerRow; score?: Score; unranked?: boolean; dim?: boolean; relays?: string[]; votes?: React.ReactNode; children?: React.ReactNode }) {
+export function BoardRow({ row, score, unranked, dim, relays, votes, arbiterView, children }: { row: LedgerRow; score?: Score; unranked?: boolean; dim?: boolean; relays?: string[]; votes?: React.ReactNode; /** Judging aids (submission time, duplicate marker) — arbiter of this campaign only. */ arbiterView?: boolean; children?: React.ReactNode }) {
   const s = STATUS[row.status];
   return (
     <li className={cn('rounded-md border px-3 py-2 transition-colors', row.status === 'paid' && 'bg-green-50 dark:bg-green-950/30', dim && 'opacity-50')}>
@@ -37,10 +37,10 @@ export function BoardRow({ row, score, unranked, dim, relays, votes, children }:
       <AuthorName pubkey={row.contribution.pubkey} className="font-medium" relays={relays} />
       <RankBadge score={score} unranked={unranked} />
       <span className="flex-1 min-w-48 truncate" title={row.contribution.ref}>{describe(row)}</span>
-      <time className="text-xs tabular-nums text-muted-foreground" dateTime={new Date(row.contribution.created_at * 1000).toISOString()} title={`${new Date(row.contribution.created_at * 1000).toLocaleString()} (author-claimed time)`}>
+      {arbiterView && <time className="text-xs tabular-nums text-muted-foreground" dateTime={new Date(row.contribution.created_at * 1000).toISOString()} title={`${new Date(row.contribution.created_at * 1000).toLocaleString()} (author-claimed time)`}>
         {formatDistanceToNowStrict(row.contribution.created_at * 1000, { addSuffix: true })}
-      </time>
-      {row.duplicateOf !== undefined && <Badge variant="outline" className="gap-1 text-muted-foreground" title="Same item submitted earlier by another contributor"><Copy className="h-3 w-3" />same as #{row.duplicateOf}</Badge>}
+      </time>}
+      {arbiterView && row.duplicateOf !== undefined && <Badge variant="outline" className="gap-1 text-muted-foreground" title="Same item submitted earlier by another contributor"><Copy className="h-3 w-3" />same as #{row.duplicateOf}</Badge>}
       {votes}
       {!row.fundable && row.status === 'candidate' && <Badge variant="outline" className="text-muted-foreground">beyond budget</Badge>}
       {row.paidSats !== undefined && <span className="text-sm tabular-nums">{formatSats(row.paidSats)}</span>}
