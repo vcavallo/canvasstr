@@ -5,6 +5,9 @@ import { Layout } from '@/components/gleaner/Layout';
 import { BoardRow } from '@/components/gleaner/BoardRow';
 import { PatronActions } from '@/components/gleaner/PatronActions';
 import { ContributeItemDialog } from '@/components/gleaner/ContributeItemDialog';
+import { VoteButtons } from '@/components/gleaner/VoteButtons';
+import { tallyVotes } from '@/lib/votes';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { ArbiterPanel, ArbiterRowControls } from '@/components/gleaner/ArbiterActions';
 import { useArbiterActions } from '@/hooks/useArbiterActions';
 import { RankBadge } from '@/components/gleaner/RankBadge';
@@ -30,16 +33,21 @@ export default function CampaignBoard() {
   const { config, presetRelays } = useAppContext();
   const activeRelays = useMemo(() => getActiveRelays(config, presetRelays), [config, presetRelays]);
   const { campaign, eose: campaignEose } = useCampaign(addr?.pubkey, addr?.identifier);
-  const { ledger, eose, relays: boardRelays } = useCampaignBoard(campaign, activeRelays);
+  const { ledger, votes, eose, relays: boardRelays } = useCampaignBoard(campaign, activeRelays);
+  const { user } = useCurrentUser();
+  const voterPubkeys = useMemo(() => [...new Set(votes.map((v) => v.pubkey))], [votes]);
   const { lens, minRank } = useLens();
   const arbiter = useArbiterActions(campaign ?? FALLBACK, ledger);
   const pubkeys = useMemo(() => [
     campaign?.patronPubkey ?? '', campaign?.arbiterPubkey ?? '',
     ...(ledger?.rows.map((r) => r.contribution.pubkey) ?? []),
-  ].filter(Boolean), [campaign, ledger]);
+    ...voterPubkeys,
+  ].filter(Boolean), [campaign, ledger, voterPubkeys]);
   const ranks = useRanks(lens, pubkeys);
-  const scores = ranks.data ?? new Map();
+  const scores = useMemo(() => ranks.data ?? new Map<string, import('@/lib/pov').Score>(), [ranks.data]);
   const unranked = lens.source === 'author';
+  const weighted = !unranked && (!!lens.provider || !!lens.observer);
+  const tallies = useMemo(() => tallyVotes(ledger?.rows.map((r) => r.contribution) ?? [], votes, { scores: weighted ? scores : undefined, minRank, viewer: user?.pubkey }), [ledger, votes, scores, weighted, minRank, user?.pubkey]);
 
   if (!addr) return <Layout><p className="text-destructive">Not a campaign address.</p></Layout>;
   if (!campaign) {
@@ -94,7 +102,8 @@ export default function CampaignBoard() {
         {shownRows.map((row) => {
           const dim = !unranked && (!!lens.provider || !!lens.observer) && !!ranks.data && !passesLens(scores, row.contribution.pubkey, minRank) && row.status === 'candidate';
           return (
-            <BoardRow key={row.contribution.ref} row={row} score={scores.get(row.contribution.pubkey)} unranked={unranked} dim={dim} relays={boardRelays}>
+            <BoardRow key={row.contribution.ref} row={row} score={scores.get(row.contribution.pubkey)} unranked={unranked} dim={dim} relays={boardRelays}
+              votes={<VoteButtons contribution={row.contribution} tally={tallies.get(row.contribution.ref)} relays={boardRelays} weighted={weighted} />}>
               <ArbiterRowControls row={row} a={arbiter} campaign={campaign} />
             </BoardRow>
           );

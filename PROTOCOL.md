@@ -156,6 +156,12 @@ On acceptance the arbiter's client MAY also publish a NIP-25 kind 7 reaction `+`
 costs nothing and lets Tapestry-aware readers weight accepted items without knowing about
 Catallax.
 
+Gleaner also reads and casts ordinary NIP-25 votes on contributions. A Gleaner vote carries
+`e` (item id), `a` (item coordinate, 39999 only), `p` (item author) and `k`, so both id-keyed and
+coordinate-keyed readers attribute it. Votes are tallied per coordinate (surviving republishes),
+latest vote per voter wins, self-votes are ignored, and counts are shown twice: from voters at or
+above the viewer's lens threshold, and in total.
+
 ## 7. Open questions
 
 - Should a contributor be able to *claim* explicitly (e.g. a kind 1111 comment on the campaign

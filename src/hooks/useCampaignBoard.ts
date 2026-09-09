@@ -4,6 +4,7 @@ import { CATALLAX_KINDS } from '@/lib/catallax';
 import { collectContributions, targetsToFilter } from '@/lib/contributions';
 import { campaignCoord, type Campaign } from '@/lib/gleaner';
 import { buildLedger, type Ledger } from '@/lib/ledger';
+import { votesFilters } from '@/lib/votes';
 import { useLiveEvents } from './useLiveEvents';
 
 /**
@@ -32,13 +33,17 @@ export function useCampaignBoard(campaign: Campaign | null, activeRelays: string
   const contributions = useLiveEvents(contributionFilters, contributionRelays);
   const settlement = useLiveEvents(settlementFilters);
 
+  const contributionList = useMemo(() => (campaign ? collectContributions(contributions.events, campaign.targets, { since }) : []), [campaign, contributions.events, since]);
+  const voteFilters = useMemo<NostrFilter[] | null>(() => (contributionList.length ? votesFilters(contributionList) : null), [contributionList]);
+  const votes = useLiveEvents(voteFilters, contributionRelays);
+
   const ledger = useMemo<Ledger | null>(() => {
     if (!campaign) return null;
-    const cs = collectContributions(contributions.events, campaign.targets, { since });
+    const cs = contributionList;
     const conclusions = settlement.events.filter((e) => e.kind === CATALLAX_KINDS.TASK_CONCLUSION);
     const receipts = settlement.events.filter((e) => e.kind === 9735);
     return buildLedger(campaign, cs, conclusions, receipts);
-  }, [campaign, contributions.events, settlement.events, since]);
+  }, [campaign, contributionList, settlement.events]);
 
-  return { ledger, relays: contributionRelays, eose: contributions.eose && settlement.eose, error: contributions.error ?? settlement.error };
+  return { ledger, votes: votes.events, relays: contributionRelays, eose: contributions.eose && settlement.eose, error: contributions.error ?? settlement.error };
 }
