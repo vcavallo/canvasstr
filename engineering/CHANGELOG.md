@@ -14,3 +14,4 @@
 - 2026-09-09 — Row layout: identity group + right-aligned meta group that wraps as a unit. Arbiter can reverse their own rejection (NIP-09 kind 5 honoured by the ledger).
 - 2026-09-09 — Details dialog on every contribution (all fields, content, target, contributor, time, coordinate, raw event); rows show two fields inline.
 - 2026-09-09 — Items that predate a campaign show in a collapsed reference section; new duplicates of them are flagged "already on the list" for the arbiter.
+- 2026-09-09 — Tag targets: paste a tags.brainstorm.world tag URL or tag coordinate; the board counts profile taggings applying that tag (by `a` coordinate and legacy `e` id, nostr-user-tag family, pins excluded). Verified live against the "podcaster" tag.

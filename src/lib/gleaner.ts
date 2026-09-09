@@ -25,11 +25,18 @@ export type PayoutMode = 'streaming' | 'terminal';
 export type ContributionKind = 'item' | 'event-tag' | 'profile-tag';
 
 export interface CampaignTarget {
-  /** A Tapestry `z` value: `39998:<pk>:<d>` or `39999:<pk>:<d>`. */
+  /**
+   * A Tapestry `z` value (`39998:<pk>:<d>` list/concept header, `39999:<pk>:tagging:<slug>-tagging`
+   * per-tag header) or, with hint `profile-tag`, a tag-element coordinate `39999:<author>:<slug>`:
+   * then contributions are the profile taggings that apply that tag (matched by `a` = coordinate,
+   * or legacy `e` = `tagEventId`).
+   */
   z: string;
   relay?: string;
-  /** Advisory render hint. */
+  /** Advisory render hint; `profile-tag` on a 39999 coordinate means "tag element". */
   hint?: ContributionKind;
+  /** For tag-element targets: the tag's event id, so legacy id-keyed taggings match too. */
+  tagEventId?: string;
 }
 
 export interface CampaignInput extends Omit<TaskProposalInput, 'workerPubkey' | 'status'> {
@@ -83,8 +90,8 @@ export function buildCampaignTemplate(input: CampaignInput): EventTemplate {
   });
   const tags = [...base.tags, ['campaign', CAMPAIGN_MARKER]];
   for (const t of targets) {
-    const tag = ['target', t.z, t.relay ?? ''];
-    if (t.hint) tag.push(t.hint);
+    const tag = ['target', t.z, t.relay ?? '', t.hint ?? ''];
+    if (t.tagEventId) tag.push(t.tagEventId);
     tags.push(tag);
   }
   tags.push(['rate', String(rate)]);
@@ -110,10 +117,11 @@ export function parseCampaign(event: NostrEvent): Campaign | null {
   if (!task) return null;
   const targets: CampaignTarget[] = event.tags
     .filter(([n, z]) => n === 'target' && z)
-    .map(([, z, relay, hint]) => ({
+    .map(([, z, relay, hint, tagEventId]) => ({
       z,
       relay: relay || undefined,
       hint: isContributionKind(hint) ? hint : undefined,
+      tagEventId: tagEventId && /^[0-9a-f]{64}$/.test(tagEventId) ? tagEventId : undefined,
     }));
   const rate = Number(event.tags.find(([n]) => n === 'rate')?.[1]);
   if (targets.length === 0 || !Number.isInteger(rate) || rate <= 0) return null;

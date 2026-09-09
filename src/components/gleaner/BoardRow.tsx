@@ -1,6 +1,5 @@
 import { CheckCircle2, Circle, CircleDollarSign, Copy, XCircle } from 'lucide-react';
 import { formatDistanceToNowStrict } from 'date-fns';
-import { nip19 } from 'nostr-tools';
 import { AuthorAvatar } from '@/components/AuthorAvatar';
 import { AuthorName } from '@/components/AuthorName';
 import { ContributionDetails } from './ContributionDetails';
@@ -18,10 +17,10 @@ const STATUS: Record<LedgerRow['status'], { icon: React.ReactNode; label: string
   rejected: { icon: <XCircle className="h-4 w-4" />, label: 'rejected', tone: 'text-destructive' },
 };
 
-function describe(row: LedgerRow): string {
+function describe(row: LedgerRow, relays?: string[]): React.ReactNode {
   const c = row.contribution;
   switch (c.kindOfContribution) {
-    case 'profile-tag': return `tagged ${c.taggedRef ? nip19.npubEncode(c.taggedRef).slice(0, 16) + '…' : 'someone'}${c.tagCoord ? ' as ' + c.tagCoord.split(':').pop() : ''}`;
+    case 'profile-tag': return <>tagged {c.taggedRef ? <AuthorName pubkey={c.taggedRef} relays={relays} className="font-medium" /> : 'someone'}{c.tagCoord ? ` as ${c.tagCoord.split(':').pop()}` : ''}</>;
     case 'event-tag': return `tagged an event as ${c.label}`;
     default: return `added "${c.label}"`;
   }
@@ -37,7 +36,7 @@ export function BoardRow({ row, score, unranked, dim, relays, votes, arbiterView
           <AuthorAvatar pubkey={row.contribution.pubkey} className="h-6 w-6 shrink-0" relays={relays} />
           <AuthorName pubkey={row.contribution.pubkey} className="shrink-0 font-medium" relays={relays} />
           <RankBadge score={score} unranked={unranked} />
-          <span className="min-w-0 truncate" title={row.contribution.ref}>{describe(row)}</span>
+          <span className="min-w-0 truncate" title={row.contribution.ref}>{describe(row, relays)}</span>
         </div>
         <div className="ml-auto flex flex-wrap items-center justify-end gap-x-3 gap-y-1">
           {arbiterView && <time className="text-xs tabular-nums text-muted-foreground" dateTime={new Date(row.contribution.created_at * 1000).toISOString()} title={`${new Date(row.contribution.created_at * 1000).toLocaleString()} (author-claimed time)`}>

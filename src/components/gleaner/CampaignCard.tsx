@@ -38,7 +38,7 @@ export function CampaignCard({ campaign: c, patronScore, arbiterScore, unranked 
         <div className="flex flex-wrap gap-1">
           {c.targets.map((t) => (
             <Badge key={t.z} variant="outline" className="font-mono text-xs" title={t.z}>
-              {t.hint ?? classifyTarget(t.z)} · {t.z.split(':').slice(2).join(':') || t.z}
+              {t.tagEventId ? 'tag' : (t.hint ?? classifyTarget(t.z))} · {t.z.split(':').slice(2).join(':') || t.z}
             </Badge>
           ))}
         </div>

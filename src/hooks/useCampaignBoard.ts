@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import type { NostrFilter } from '@nostrify/nostrify';
 import { CATALLAX_KINDS } from '@/lib/catallax';
-import { collectContributions, targetsToFilter } from '@/lib/contributions';
+import { collectContributions, targetsToFilters } from '@/lib/contributions';
 import { campaignCoord, type Campaign } from '@/lib/gleaner';
 import { buildLedger, type Ledger } from '@/lib/ledger';
 import { votesFilters } from '@/lib/votes';
@@ -17,7 +17,7 @@ export function useCampaignBoard(campaign: Campaign | null, activeRelays: string
   const since = campaign?.since;
 
   const contributionFilters = useMemo<NostrFilter[] | null>(
-    () => (campaign ? [targetsToFilter(campaign.targets)] : null), // whole list; split at `since` below
+    () => (campaign ? targetsToFilters(campaign.targets) : null), // whole list; split at `since` below
     [campaign],
   );
   const contributionRelays = useMemo(() => {

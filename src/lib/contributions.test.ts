@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { classifyTarget, collectContributions, parseContribution, targetsToFilter } from './contributions';
+import { classifyTarget, collectContributions, isTagElementTarget, parseContribution, targetsToFilters } from './contributions';
 import { loadFixture } from '@/test/fixtures';
 
 const TA = 'a68dbf561cfe3da1b76f1e65c7d4d9cc116f79921b38a815fd75cb5460b4b599';
@@ -7,10 +7,19 @@ const LEGACY = '82b75e474dda005e912bcbb910391c60c2b89cc7faf5d3c30b7c59a324973833
 const GITHUB = '39998:b83a28b7e4e5d20bd960c5faeb6625f95529166b8bdb045d42634a2f35919450:github-accounts';
 
 describe('targetsToFilter', () => {
-  it('is one #z filter over item kinds', () => {
-    expect(targetsToFilter([{ z: GITHUB }, { z: `39998:${TA}:tag` }], 5)).toEqual({
+  it('is one #z filter over item kinds for headers', () => {
+    expect(targetsToFilters([{ z: GITHUB }, { z: `39998:${TA}:tag` }], 5)).toEqual([{
       kinds: [39999, 9999], '#z': [GITHUB, `39998:${TA}:tag`], since: 5,
-    });
+    }]);
+  });
+  it('adds #a and legacy #e filters for tag-element targets', () => {
+    const tag = { z: `39999:${TA}:podcaster`, hint: 'profile-tag' as const, tagEventId: 'f'.repeat(64) };
+    expect(isTagElementTarget(tag)).toBe(true);
+    expect(isTagElementTarget({ z: `39999:${TA}:tagging:podcaster-tagging`, hint: 'event-tag' })).toBe(false);
+    expect(targetsToFilters([tag])).toEqual([
+      { kinds: [39999], '#a': [tag.z] },
+      { kinds: [39999], '#e': ['f'.repeat(64)] },
+    ]);
   });
 });
 
@@ -84,6 +93,26 @@ describe('real profile taggings', () => {
     }
     const disputed = { ...ev[0], id: 'x', tags: ev[0].tags.map((t) => (t[0] === 'polarity' ? ['polarity', '-1'] : t)) };
     expect(parseContribution(disputed, [{ z: `39998:${LEGACY}:nostr-user-tag` }])?.polarity).toBe(-1);
+  });
+});
+
+describe('tag-element targets against real profile taggings', () => {
+  const ev = loadFixture('profile-taggings.jsonl');
+  it('matches legacy id-keyed taggings via tagEventId and exposes the tagged pubkey', () => {
+    const tagId = ev[0].tags.find(([n]) => n === 'e')![1];
+    const target = { z: `39999:${'a'.repeat(64)}:whatever`, hint: 'profile-tag' as const, tagEventId: tagId };
+    const cs = collectContributions(ev, [target], { includeDisputes: true });
+    expect(cs.length).toBeGreaterThan(0);
+    for (const c of cs) {
+      expect(c.kindOfContribution).toBe('profile-tag');
+      expect(c.taggedRef).toMatch(/^[0-9a-f]{64}$/);
+      expect(c.tagCoord).toBe(target.z);
+    }
+    expect(collectContributions(ev, [{ ...target, tagEventId: 'b'.repeat(64) }])).toHaveLength(0);
+  });
+  it('does not count pins that merely reference the tag', () => {
+    const pin = { ...ev[0], id: 'pin', tags: [['d', 'tag-pin-x'], ['e', ev[0].tags.find(([n]) => n === 'e')![1]], ['a', '39999:' + 'a'.repeat(64) + ':x'], ['z', '39998:' + 'c'.repeat(64) + ':tag-pinning']] };
+    expect(parseContribution(pin, [{ z: '39999:' + 'a'.repeat(64) + ':x', hint: 'profile-tag', tagEventId: pin.tags[1][1] }])).toBeNull();
   });
 });
 

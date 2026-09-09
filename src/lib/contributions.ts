@@ -31,14 +31,27 @@ export interface Contribution {
   event: NostrEvent;
 }
 
-/** Relay filter for everything contributed to a set of targets since `since`. */
+/** A target that names a tag element (profile taggings applying that tag), not a header. */
+export function isTagElementTarget(t: CampaignTarget): boolean {
+  return t.hint === 'profile-tag' && /^39999:[0-9a-f]{64}:/.test(t.z) && !/:tagging:/.test(t.z);
+}
+
+/** Relay filters for everything contributed to a set of targets since `since`. */
+export function targetsToFilters(targets: CampaignTarget[], since?: number): NostrFilter[] {
+  const headers = targets.filter((t) => !isTagElementTarget(t));
+  const tagTargets = targets.filter(isTagElementTarget);
+  const out: NostrFilter[] = [];
+  if (headers.length) out.push({ kinds: [DLIST_KINDS.ITEM, DLIST_KINDS.ITEM_REGULAR], '#z': headers.map((t) => t.z) });
+  if (tagTargets.length) out.push({ kinds: [DLIST_KINDS.ITEM], '#a': tagTargets.map((t) => t.z) });
+  const ids = tagTargets.map((t) => t.tagEventId).filter((x): x is string => !!x);
+  if (ids.length) out.push({ kinds: [DLIST_KINDS.ITEM], '#e': ids });
+  if (since) for (const f of out) f.since = since;
+  return out;
+}
+
+/** @deprecated use targetsToFilters */
 export function targetsToFilter(targets: CampaignTarget[], since?: number): NostrFilter {
-  const f: NostrFilter = {
-    kinds: [DLIST_KINDS.ITEM, DLIST_KINDS.ITEM_REGULAR],
-    '#z': targets.map((t) => t.z),
-  };
-  if (since) f.since = since;
-  return f;
+  return targetsToFilters(targets, since)[0];
 }
 
 function tagValues(e: NostrEvent, name: string): string[] {
@@ -46,6 +59,10 @@ function tagValues(e: NostrEvent, name: string): string[] {
 }
 function firstTag(e: NostrEvent, name: string): string | undefined {
   return e.tags.find(([n]) => n === name)?.[1];
+}
+
+function descriptiveFields(e: NostrEvent): [string, string][] {
+  return e.tags.filter(([n, v]) => !STRUCTURAL_TAGS.has(n) && n !== 'polarity' && v).map(([n, v]) => [n, v] as [string, string]);
 }
 
 /** Classify by the target's shape rather than the event's, since every user event is 39999. */
@@ -86,12 +103,23 @@ function labelForItem(e: NostrEvent): string {
 export function parseContribution(e: NostrEvent, targets: CampaignTarget[]): Contribution | null {
   if (e.kind !== DLIST_KINDS.ITEM && e.kind !== DLIST_KINDS.ITEM_REGULAR) return null;
   const zs = tagValues(e, 'z');
-  const target = targets.find((t) => zs.includes(t.z));
+  const as = tagValues(e, 'a');
+  const es = tagValues(e, 'e');
+  // Tag-element target: a profile tagging that applies this tag (by coordinate or legacy id),
+  // excluding pins/headers (which also reference the tag but live under other concepts).
+  const tagTarget = targets.find((t) => isTagElementTarget(t) && (as.includes(t.z) || (!!t.tagEventId && es.includes(t.tagEventId))) && zs.some((z) => /:nostr-user-tag$/.test(z)));
+  if (tagTarget) {
+    const tagged = firstTag(e, 'p');
+    if (!tagged) return null;
+    const d = firstTag(e, 'd') ?? '';
+    return { id: e.id, pubkey: e.pubkey, kind: e.kind, created_at: e.created_at, ref: `${e.kind}:${e.pubkey}:${d}`, target: tagTarget.z, kindOfContribution: 'profile-tag', polarity: polarityOf(e), fields: descriptiveFields(e), event: e, label: tagged, taggedRef: tagged, tagCoord: tagTarget.z };
+  }
+  const target = targets.find((t) => !isTagElementTarget(t) && zs.includes(t.z));
   if (!target) return null;
   const kindOfContribution = target.hint ?? classifyTarget(target.z);
   const d = firstTag(e, 'd') ?? '';
   const ref = e.kind === DLIST_KINDS.ITEM ? `${e.kind}:${e.pubkey}:${d}` : e.id;
-  const fields = e.tags.filter(([n, v]) => !STRUCTURAL_TAGS.has(n) && n !== 'polarity' && v).map(([n, v]) => [n, v] as [string, string]);
+  const fields = descriptiveFields(e);
   const base = { id: e.id, pubkey: e.pubkey, kind: e.kind, created_at: e.created_at, ref, target: target.z, kindOfContribution, polarity: polarityOf(e), fields, event: e };
 
   if (kindOfContribution === 'profile-tag') {

@@ -74,7 +74,7 @@ is one relay filter: `{"kinds":[39999, 9999], "#z":["<target>"], "since": <since
 | Items added to a list ("restaurants in Toronto") | `39998:<headerAuthor>:<d>` | kind 39999 item with `["z", "<that coordinate>"]` and a `p`/`e`/`a`/`t` payload |
 | Lexicon entries (tag definitions) | `39998:<TA>:tag` | kind 39999 tag-element with `["d", slug]`, `["z", "<that>"]`, content `{"tag":{…}}` |
 | Posts / list items tagged with tag X | `39999:<tagAuthor>:tagging:<slug>-tagging` | kind 39999 assertion with `["z", "<that>"]`, `["e"\|"a", target]`, `["polarity", "1"]` |
-| People tagged with tag X | `39998:<TA>:nostr-user-tag` (+ client-side filter on `["a","39999:<tagAuthor>:<slug>"]`) | kind 39999 with `["p", target]`, `["a", tag coordinate]` |
+| People tagged with tag X | the tag element itself, `39999:<tagAuthor>:<slug>`, with hint `profile-tag` and the tag event id as a 5th element | kind 39999 in the nostr-user-tag family (`z` ends `:nostr-user-tag`) with `["p", target]` and `["a", tag coordinate]` (new) or `["e", tag event id]` (legacy). Filters: `#a` coordinate ∪ `#e` id; pins (`z …:tag-pinning`) excluded |
 
 The `<hint>` element (`item`, `event-tag`, `profile-tag`) tells clients how to render the
 match; it is advisory.
