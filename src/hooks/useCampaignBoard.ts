@@ -17,8 +17,8 @@ export function useCampaignBoard(campaign: Campaign | null, activeRelays: string
   const since = campaign?.since;
 
   const contributionFilters = useMemo<NostrFilter[] | null>(
-    () => (campaign ? [targetsToFilter(campaign.targets, since)] : null),
-    [campaign, since],
+    () => (campaign ? [targetsToFilter(campaign.targets)] : null), // whole list; split at `since` below
+    [campaign],
   );
   const contributionRelays = useMemo(() => {
     const set = new Set(activeRelays);
@@ -33,7 +33,9 @@ export function useCampaignBoard(campaign: Campaign | null, activeRelays: string
   const contributions = useLiveEvents(contributionFilters, contributionRelays);
   const settlement = useLiveEvents(settlementFilters);
 
-  const contributionList = useMemo(() => (campaign ? collectContributions(contributions.events, campaign.targets, { since }) : []), [campaign, contributions.events, since]);
+  const all = useMemo(() => (campaign ? collectContributions(contributions.events, campaign.targets) : []), [campaign, contributions.events]);
+  const contributionList = useMemo(() => all.filter((c) => !since || c.created_at >= since), [all, since]);
+  const prior = useMemo(() => all.filter((c) => !!since && c.created_at < since), [all, since]);
   const voteFilters = useMemo<NostrFilter[] | null>(() => (contributionList.length ? votesFilters(contributionList) : null), [contributionList]);
   const votes = useLiveEvents(voteFilters, contributionRelays);
 
@@ -42,8 +44,8 @@ export function useCampaignBoard(campaign: Campaign | null, activeRelays: string
     const cs = contributionList;
     const conclusions = settlement.events.filter((e) => e.kind === CATALLAX_KINDS.TASK_CONCLUSION || e.kind === 5);
     const receipts = settlement.events.filter((e) => e.kind === 9735);
-    return buildLedger(campaign, cs, conclusions, receipts);
-  }, [campaign, contributionList, settlement.events]);
+    return buildLedger(campaign, cs, conclusions, receipts, { prior });
+  }, [campaign, contributionList, prior, settlement.events]);
 
   return { ledger, votes: votes.events, relays: contributionRelays, eose: contributions.eose && settlement.eose, error: contributions.error ?? settlement.error };
 }

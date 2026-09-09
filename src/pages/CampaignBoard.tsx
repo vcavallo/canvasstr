@@ -109,6 +109,21 @@ export default function CampaignBoard() {
           );
         })}
       </ul>
+      {ledger && ledger.prior.length > 0 && (
+        <details className="mt-6 rounded-md border px-3 py-2 text-sm opacity-70">
+          <summary className="cursor-pointer">Already on the list before this campaign ({ledger.prior.length}) — for reference, not eligible</summary>
+          <ul className="mt-2 divide-y">
+            {ledger.prior.map((c) => (
+              <li key={c.ref} className="flex flex-wrap items-center gap-x-3 gap-y-1 py-1.5">
+                <AuthorAvatar pubkey={c.pubkey} className="h-5 w-5" relays={boardRelays} />
+                <AuthorName pubkey={c.pubkey} relays={boardRelays} />
+                <span className="min-w-0 flex-1 truncate" title={c.ref}>{c.label}</span>
+                <time className="text-xs text-muted-foreground" dateTime={new Date(c.created_at * 1000).toISOString()}>{new Date(c.created_at * 1000).toLocaleDateString()}</time>
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
       <p className="mt-6 text-xs text-muted-foreground"><Link to="/" className="underline">All campaigns</Link></p>
     </Layout>
   );

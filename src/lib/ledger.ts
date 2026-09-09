@@ -22,8 +22,8 @@ export interface LedgerRow {
   position: number;
   /** False when this row is beyond the slots the escrow can pay. */
   fundable: boolean;
-  /** Position of the earliest row submitting the same thing to the same target, if any. */
-  duplicateOf?: number;
+  /** Position of the earliest row submitting the same thing to the same target, or 'existing' when it was already on the list before the campaign. */
+  duplicateOf?: number | 'existing';
 }
 
 export interface Ledger {
@@ -34,6 +34,8 @@ export interface Ledger {
   rejected: number;
   remaining: number;
   final?: CampaignFinal;
+  /** Items that were on the target lists before the campaign's `since`: reference only. */
+  prior: Contribution[];
 }
 
 interface ReceiptInfo {
@@ -75,7 +77,7 @@ export function buildLedger(
   contributions: Contribution[],
   conclusions: NostrEvent[],
   receipts: NostrEvent[],
-  opts: { arbiterFeeSats?: number } = {},
+  opts: { arbiterFeeSats?: number; prior?: Contribution[] } = {},
 ): Ledger {
   const arbiter = campaign.arbiterPubkey;
   const retracted = new Set<string>();
@@ -98,7 +100,8 @@ export function buildLedger(
   const perPubkey = new Map<string, number>();
 
   const rows: LedgerRow[] = [];
-  const firstByKey = new Map<string, number>();
+  const firstByKey = new Map<string, number | 'existing'>();
+  for (const p of opts.prior ?? []) if (!firstByKey.has(contributionKey(p))) firstByKey.set(contributionKey(p), 'existing');
   let held = 0;
   let paid = 0;
   let rejected = 0;
@@ -121,7 +124,7 @@ export function buildLedger(
     if (duplicateOf === undefined) firstByKey.set(key, position);
     rows.push({ contribution: c, status, acceptance, receipt: paidInfo?.receipt, paidSats: paidInfo?.sats, position, fundable, duplicateOf });
   }
-  return { rows, slots, accepted: held + paid, paid, rejected, remaining: Math.max(0, slots - held - paid), final };
+  return { rows, slots, accepted: held + paid, paid, rejected, remaining: Math.max(0, slots - held - paid), final, prior: opts.prior ?? [] };
 }
 
 export { parseZapReceiptSender };

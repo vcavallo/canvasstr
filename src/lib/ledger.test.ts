@@ -90,6 +90,14 @@ describe('buildLedger', () => {
     expect(undo.tags).toContainEqual(['a', `33401:${PATRON}:places`]);
   });
 
+  it('prior items are reference only and flag later duplicates as existing', () => {
+    const prior = collectContributions([item(carol, 'a1', 5)], campaign.targets); // carol's earlier 'a1'
+    const l = buildLedger(campaign, contributions, [], [], { prior });
+    expect(l.prior).toHaveLength(1);
+    expect(l.rows.find((r) => r.contribution.label === 'a1')!.duplicateOf).toBe('existing');
+    expect(l.rows).toHaveLength(4); // prior never becomes a row
+  });
+
   it('picks up the final conclusion', () => {
     const fin = asEvent(buildCampaignFinalTemplate({ campaign, resolution: 'successful' }), ARBITER, 99);
     expect(buildLedger(campaign, contributions, [fin], []).final?.resolution).toBe('successful');

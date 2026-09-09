@@ -43,7 +43,7 @@ export function BoardRow({ row, score, unranked, dim, relays, votes, arbiterView
           {arbiterView && <time className="text-xs tabular-nums text-muted-foreground" dateTime={new Date(row.contribution.created_at * 1000).toISOString()} title={`${new Date(row.contribution.created_at * 1000).toLocaleString()} (author-claimed time)`}>
             {formatDistanceToNowStrict(row.contribution.created_at * 1000, { addSuffix: true })}
           </time>}
-          {arbiterView && row.duplicateOf !== undefined && <Badge variant="outline" className="gap-1 text-muted-foreground" title="Same item submitted earlier by another contributor"><Copy className="h-3 w-3" />same as #{row.duplicateOf}</Badge>}
+          {arbiterView && row.duplicateOf !== undefined && <Badge variant="outline" className="gap-1 text-muted-foreground" title={row.duplicateOf === 'existing' ? 'This was already on the list before the campaign started' : 'Same item submitted earlier by another contributor'}><Copy className="h-3 w-3" />{row.duplicateOf === 'existing' ? 'already on the list' : `same as #${row.duplicateOf}`}</Badge>}
           {votes}
           {!row.fundable && row.status === 'candidate' && <Badge variant="outline" className="text-muted-foreground">beyond budget</Badge>}
           {row.paidSats !== undefined && <span className="text-sm tabular-nums">{formatSats(row.paidSats)}</span>}
