@@ -20,6 +20,8 @@ export interface LensEnv {
   houseProvider?: string;
   nip85Relay: string;
   brainstormSignup: string;
+  /** Extra relays to look for zap receipts on: LNURL providers publish where they like. */
+  receiptRelays: string[];
 }
 
 export function readLensEnv(env: Record<string, string | undefined> = import.meta.env as Record<string, string | undefined>): LensEnv {
@@ -28,5 +30,6 @@ export function readLensEnv(env: Record<string, string | undefined> = import.met
     houseProvider: toHexPubkey(env.VITE_HOUSE_POV_PROVIDER) ?? '919ba08af7786892093b8264332d817379662a0ba0ba1f5c791ed7b62a7ee2ff',
     nip85Relay: env.VITE_NIP85_RELAY?.trim() || 'wss://nip85.brainstorm.world',
     brainstormSignup: env.VITE_BRAINSTORM_SIGNUP?.trim() || 'https://tapestry.brainstorm.world/pages/customers/sign-up.html',
+    receiptRelays: env.VITE_RECEIPT_RELAYS ? env.VITE_RECEIPT_RELAYS.split(',').map((s) => s.trim()).filter(Boolean) : ['wss://relay.damus.io', 'wss://nos.lol', 'wss://relay.primal.net'],
   };
 }

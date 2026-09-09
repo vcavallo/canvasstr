@@ -9,6 +9,10 @@ import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useNostrPublish } from '@/hooks/useNostrPublish';
 import { useToast } from '@/hooks/useToast';
 import { useZapGoal } from '@/hooks/useZapGoal';
+import { useQuery } from '@tanstack/react-query';
+import { useNostr } from '@nostrify/react';
+import { readLensEnv } from '@/lib/lensConfig';
+import { parseZapReceiptAmount, parseZapReceiptSender } from '@/lib/catallax';
 import { buildZapGoalTemplate, formatSats } from '@/lib/catallax';
 import { buildCampaignDeletionTemplate, buildCampaignTemplate, campaignCoord, campaignToInput, type Campaign } from '@/lib/gleaner';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
@@ -30,6 +34,19 @@ export function PatronActions({ campaign }: { campaign: Campaign }) {
   const { data: goalData } = useZapGoal(campaign.goalId);
   const [pay, setPay] = useState<PayRequest | null>(null);
   const navigate = useNavigate();
+  const { nostr } = useNostr();
+  // An escrow receipt may land after the pay dialog gave up, or on the provider's own relays.
+  const escrowReceipt = useQuery<NostrEvent | null>({
+    queryKey: ['escrow-receipt', campaign.id, campaign.status],
+    enabled: campaign.status === 'proposed' && campaign.fundingType === 'single',
+    refetchInterval: 30_000,
+    queryFn: async ({ signal }) => {
+      const rs = [...new Set([...relays, ...readLensEnv().receiptRelays])];
+      const events = await nostr.query([{ kinds: [9735], '#e': [campaign.id], limit: 10 }], { signal: AbortSignal.any([signal, AbortSignal.timeout(8000)]), relays: rs }).catch(() => [] as NostrEvent[]);
+      return events.filter((r) => parseZapReceiptSender(r) === campaign.patronPubkey).sort((a, b) => b.created_at - a.created_at)[0] ?? null;
+    },
+  });
+  const foundReceipt = escrowReceipt.data ?? null;
 
   const isPatron = user?.pubkey === campaign.patronPubkey;
   const isArbiter = user?.pubkey === campaign.arbiterPubkey;
@@ -122,8 +139,18 @@ export function PatronActions({ campaign }: { campaign: Campaign }) {
         )}
         {!crowd && isPatron && campaign.status === 'proposed' && (
           <div className="flex flex-wrap items-center gap-2">
-            <Button size="sm" onClick={fundSingle}>Fund escrow ({formatSats(campaign.amount)})</Button>
-            <Button size="sm" variant="outline" disabled={isPending} onClick={() => markFunded()}>Already paid: mark funded</Button>
+            {foundReceipt ? (
+              <>
+                <span className="text-green-700 dark:text-green-400">Escrow receipt found ({formatSats(Math.floor(parseZapReceiptAmount(foundReceipt) / 1000))}).</span>
+                <Button size="sm" disabled={isPending} onClick={() => markFunded(foundReceipt)}>Mark funded with this receipt</Button>
+              </>
+            ) : (
+              <>
+                <Button size="sm" onClick={fundSingle}>Fund escrow ({formatSats(campaign.amount)})</Button>
+                <Button size="sm" variant="outline" disabled={isPending} onClick={() => markFunded()}>Already paid: mark funded</Button>
+                <span className="text-xs text-muted-foreground">Checking the relays for a receipt every 30 s.</span>
+              </>
+            )}
           </div>
         )}
         {(isPatron || isArbiter) && campaign.status === 'funded' && (

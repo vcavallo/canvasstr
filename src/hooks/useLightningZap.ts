@@ -3,6 +3,9 @@ import { useNostr } from '@nostrify/react';
 import type { WebLNProvider } from '@webbtc/webln-types';
 import type { NostrEvent } from '@nostrify/nostrify';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { readLensEnv } from '@/lib/lensConfig';
+
+const RECEIPT_RELAYS = readLensEnv().receiptRelays;
 import {
   buildInvoiceUrl,
   buildZapRequest,
@@ -152,6 +155,7 @@ export function useLightningZap() {
   /** Like waitForReceipt but resolves with the receipt event itself (or null). */
   const findReceipt = useCallback(
     async (eventId: string, relays: string[], sinceSecs: number, signal: AbortSignal): Promise<NostrEvent | null> => {
+      relays = [...new Set([...relays, ...RECEIPT_RELAYS])];
       const deadline = Date.now() + 3 * 60 * 1000;
       while (Date.now() < deadline && !signal.aborted) {
         try {

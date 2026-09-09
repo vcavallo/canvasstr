@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useDlistHeaders } from '@/hooks/useDlistHeaders';
+import { useTagElements } from '@/hooks/useTagElements';
 import { classifyTarget } from '@/lib/contributions';
 import type { CampaignTarget } from '@/lib/gleaner';
 
@@ -24,6 +25,7 @@ export function TargetPicker({ value, onChange, relays }: { value: CampaignTarge
   const [resolveError, setResolveError] = useState('');
   const { nostr } = useNostr();
   const { headers, isLoading } = useDlistHeaders(relays, search);
+  const { tags, isLoading: tagsLoading } = useTagElements(TAG_RELAYS, search);
   const trimmed = search.trim();
   const pasted = COORD.test(trimmed);
   const tagMatch = trimmed.match(TAG_URL);
@@ -74,14 +76,22 @@ export function TargetPicker({ value, onChange, relays }: { value: CampaignTarge
         </div>
       )}
       {resolveError && <p className="text-sm text-destructive">{resolveError}</p>}
-      {search && !pasted && (
-        <ul className="max-h-48 overflow-y-auto rounded-md border text-sm">
-          {isLoading && <li className="p-2 text-muted-foreground">Searching…</li>}
-          {!isLoading && headers.length === 0 && <li className="p-2 text-muted-foreground">No lists match.</li>}
+      {search && !pasted && !tagId && (
+        <ul className="max-h-64 overflow-y-auto rounded-md border text-sm">
+          {(isLoading || tagsLoading) && <li className="p-2 text-muted-foreground">Searching lists and tags…</li>}
+          {!isLoading && !tagsLoading && headers.length === 0 && tags.length === 0 && <li className="p-2 text-muted-foreground">No lists or tags match.</li>}
+          {tags.map((t) => (
+            <li key={t.coord}>
+              <button type="button" className="flex w-full flex-col items-start gap-0.5 px-2 py-1.5 text-left hover:bg-muted" onClick={() => add({ z: t.coord, relay: t.relay, hint: 'profile-tag', tagEventId: t.id })}>
+                <span className="font-medium"><span className="mr-2 rounded bg-muted px-1 text-xs">tag</span>{t.name} <span className="text-muted-foreground">— profiles tagged {t.slug}</span></span>
+                <span className="line-clamp-1 text-xs text-muted-foreground">{t.description ?? t.coord}</span>
+              </button>
+            </li>
+          ))}
           {headers.map((h) => (
             <li key={h.coord}>
               <button type="button" className="flex w-full flex-col items-start gap-0.5 px-2 py-1.5 text-left hover:bg-muted" onClick={() => add({ z: h.coord, relay: h.relay, hint: 'item' })}>
-                <span className="font-medium">{h.plural}</span>
+                <span className="font-medium"><span className="mr-2 rounded bg-muted px-1 text-xs">list</span>{h.plural} <span className="text-muted-foreground">— items added to the list</span></span>
                 <span className="line-clamp-1 text-xs text-muted-foreground">{h.description ?? h.coord}</span>
               </button>
             </li>

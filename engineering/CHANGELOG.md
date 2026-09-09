@@ -16,3 +16,4 @@
 - 2026-09-09 — Items that predate a campaign show in a collapsed reference section; new duplicates of them are flagged "already on the list" for the arbiter.
 - 2026-09-09 — Tag targets: paste a tags.brainstorm.world tag URL or tag coordinate; the board counts profile taggings applying that tag (by `a` coordinate and legacy `e` id, nostr-user-tag family, pins excluded). Verified live against the "podcaster" tag.
 - 2026-09-09 — Patron can delete a campaign (NIP-09 by coordinate); list and board honour patron-signed deletions.
+- 2026-09-09 — Target search covers tag elements (exact-slug query first); board detects a late/elsewhere escrow receipt and offers "mark funded with this receipt"; receipt lookups also check damus, nos.lol, primal.
