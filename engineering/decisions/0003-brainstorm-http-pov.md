@@ -16,11 +16,13 @@ observer's assistant key), `POST /user/graperank` to queue a calculation, `GET /
 - A lens carries `via: 'relay' | 'http'`. Relay (30382) is preferred when the observer has a
   10040; otherwise HTTP by observer pubkey, but only when Brainstorm confirms the POV is
   computed. Readiness is read from `POST /stats/pubkey` with `algorithm: graperank-pov`,
-  because `POST /rank/pubkeys` silently serves global scores for an unknown observer
-  (contradicts the server's own docs; observed live). HTTP ranks are 0–1 floats, scaled to
+  and every batch call sends `algorithm: graperank-pov`: the endpoint's default algorithm is the
+  global one, which silently ignores `pov` (root cause found by the brainstorm_server session;
+  observed live as plausible house scores under a personalised label). HTTP ranks are 0–1 floats, scaled to
   the 0–100 integer scale used on 30382.
 - One-click "Create my point of view": sign the challenge with the user's signer (any login
-  type), store the JWT per pubkey in localStorage, queue a calculation, poll every 60 s,
+  type), store the JWT per pubkey in localStorage, submit the user's kind-3 via
+  `POST /user/followList` so a fresh observer has a graph, queue a calculation, poll every 60 s,
   surface `failure` from `graperankResult`. Once ready, offer "Publish kind 10040" built from
   `/setup/{pk}` rows (only `30382:<metric>` and bare `3039x` rows are kept).
 - Brainstorm's per-IP limit (3 calculations / 30 min) and its 30-minute re-trigger cooldown

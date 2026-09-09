@@ -6,8 +6,9 @@
  *   assistant key server-side (this IS signup).
  * - POST /user/graperank (Bearer) queues a personalised calculation; GET /user/history reports
  *   ta_pubkey and last_time_calculated_graperank. Poll every 60 s; per-IP limit 3 / 30 min.
- * - GET /setup/{pk} → 10040 tag rows (after signup). POST /rank/pubkeys {pubkeys,pov} → ranks
- *   as 0–1 floats, no auth; 202 = computing, 422 = POV not provisioned.
+ * - GET /setup/{pk} → 10040 tag rows (after signup). POST /rank/pubkeys {pubkeys,pov,algorithm}
+ *   → ranks as 0–1 floats, no auth; 202 = computing, 422 = POV not provisioned. `algorithm`
+ *   MUST be "graperank-pov": the default is the global algorithm, which silently ignores `pov`.
  */
 export const BRAINSTORM_API = 'https://api.brainstorm.world';
 export const BRAINSTORM_LOGIN_KIND = 22242;

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useNostr } from '@nostrify/react';
 import { useCurrentUser } from './useCurrentUser';
 import { useLocalStorage } from './useLocalStorage';
 import { usePublishTo } from './usePublishTo';
@@ -38,7 +39,7 @@ export function useHttpRanks(pov: string | undefined, pubkeys: string[], enabled
       const scores = new Map<string, Score>();
       for (let i = 0; i < sorted.length; i += 900) {
         const chunk = sorted.slice(i, i + 900);
-        const r = await api('/rank/pubkeys', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ pubkeys: chunk, pov }) });
+        const r = await api('/rank/pubkeys', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ pubkeys: chunk, pov, algorithm: 'graperank-pov' }) }); // default algorithm is GLOBAL and ignores pov
         if (r.status === 202) return { state: 'computing', scores };
         if (r.status === 422) return { state: 'unprovisioned', scores };
         if (r.status !== 200) return { state: 'error', scores };
@@ -63,6 +64,7 @@ export interface BrainstormAccount {
 
 export function useBrainstormAccount(): BrainstormAccount {
   const { user } = useCurrentUser();
+  const { nostr } = useNostr();
   const pk = user?.pubkey;
   const [tokens, setTokens] = useLocalStorage<Record<string, string>>('gleaner:brainstorm-tokens', {});
   const token = pk ? tokens[pk] : undefined;
@@ -101,14 +103,21 @@ export function useBrainstormAccount(): BrainstormAccount {
     setError(undefined); setBusy(true);
     try {
       const jwt = token ?? (await login());
+      // Seed Brainstorm with the user's own kind-3 first: a fresh observer with no known follows
+      // has no graph to walk and the calculation fails. Best effort; counts toward the per-IP limit.
+      try {
+        const [follows] = await nostr.query([{ kinds: [3], authors: [pk!], limit: 1 }], { signal: AbortSignal.timeout(5000) });
+        if (follows) await api('/user/followList', { method: 'POST', headers: { authorization: `Bearer ${jwt}`, 'content-type': 'application/json' }, body: JSON.stringify({ signed_event: follows }) });
+      } catch { /* proceed without seeding */ }
       const r = await api('/user/graperank', { method: 'POST', headers: { authorization: `Bearer ${jwt}` } });
       if (r.status === 429) throw new Error(`Brainstorm is rate-limiting calculations (try again in ${r.headers.get('retry-after') ?? '30 min'}).`);
       if (r.status === 401) { setTokens((t) => { const n = { ...t }; delete n[pk!]; return n; }); throw new Error('Brainstorm session expired; click again.'); }
+      if (r.status === 403) throw new Error('Brainstorm only recomputes a point of view every 30 minutes; try again later.');
       if (r.status !== 200) throw new Error(`Brainstorm refused the request (${r.status}${r.headers.get('x-reason') ? ': ' + r.headers.get('x-reason') : ''}).`);
       await qc.invalidateQueries({ queryKey: ['brainstorm', 'history'] });
     } catch (e) { setError(e instanceof Error ? e.message : String(e)); }
     finally { setBusy(false); }
-  }, [token, login, qc, pk, setTokens]);
+  }, [token, login, qc, pk, setTokens, nostr]);
 
   const publishTreasureMap = useCallback(async () => {
     if (!pk) return;
