@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { NostrEvent } from '@nostrify/nostrify';
 import { buildLedger } from './ledger';
 import { collectContributions } from './contributions';
-import { buildAcceptanceTemplate, buildCampaignFinalTemplate, buildCampaignTemplate, buildConclusionRetractionTemplate, parseCampaign } from './gleaner';
+import { buildAcceptanceTemplate, buildCampaignFinalTemplate, buildCampaignTemplate, buildConclusionRetractionTemplate, parseCampaign } from './canvasstr';
 import { asEvent } from '@/test/fixtures';
 
 const PATRON = 'a'.repeat(64);

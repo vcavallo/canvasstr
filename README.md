@@ -1,4 +1,4 @@
-# Gleaner (codename)
+# Canvasstr (codename)
 
 Bounties for building up and curating decentralized lists, on Catallax.
 

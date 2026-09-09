@@ -67,7 +67,7 @@ export function useBrainstormAccount(): BrainstormAccount {
   const { user } = useCurrentUser();
   const { nostr } = useNostr();
   const pk = user?.pubkey;
-  const [tokens, setTokens] = useLocalStorage<Record<string, string>>('gleaner:brainstorm-tokens', {});
+  const [tokens, setTokens] = useLocalStorage<Record<string, string>>('canvasstr:brainstorm-tokens', {});
   const token = pk ? tokens[pk] : undefined;
   const [error, setError] = useState<string>();
   const [busy, setBusy] = useState(false);

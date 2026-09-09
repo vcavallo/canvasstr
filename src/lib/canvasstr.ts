@@ -1,5 +1,5 @@
 /**
- * Gleaner protocol layer: campaigns (kind 33401 + extension tags) and acceptances
+ * Canvasstr protocol layer: campaigns (kind 33401 + extension tags) and acceptances
  * (one kind 3402 per accepted contribution). Pure, deterministic, no I/O.
  * Wire shapes: PROTOCOL.md §2–§5. Decision record: engineering/decisions/0001.
  */
@@ -16,10 +16,13 @@ import {
   type TaskProposalInput,
 } from './catallax';
 
-export const GLEANER_TAG = 'gleaner';
+export const CANVASSTR_TAG = 'canvasstr';
+/** Campaigns published before the rename carry `t gleaner`; readers accept both. */
+export const LEGACY_TAGS = ['gleaner'];
+export const DISCOVERY_TAGS = [CANVASSTR_TAG, ...LEGACY_TAGS];
 export const CAMPAIGN_MARKER = 'curation';
 
-/** Catallax status machine plus Gleaner's `open` (PROTOCOL.md §2). */
+/** Catallax status machine plus Canvasstr's `open` (PROTOCOL.md §2). */
 export type CampaignStatus = 'proposed' | 'funded' | 'open' | 'concluded';
 export type PayoutMode = 'streaming' | 'terminal';
 export type ContributionKind = 'item' | 'event-tag' | 'profile-tag';
@@ -86,7 +89,7 @@ export function buildCampaignTemplate(input: CampaignInput): EventTemplate {
     ...task,
     // The base parser only knows Catallax statuses; `open` passes through as a string.
     status: (status ?? 'proposed') as TaskProposalInput['status'],
-    categories: [GLEANER_TAG, ...(task.categories ?? []).filter((c) => c !== GLEANER_TAG)],
+    categories: [CANVASSTR_TAG, ...(task.categories ?? []).filter((c) => c !== CANVASSTR_TAG && !LEGACY_TAGS.includes(c))],
   });
   const tags = [...base.tags, ['campaign', CAMPAIGN_MARKER]];
   for (const t of targets) {
@@ -165,7 +168,7 @@ export function campaignToInput(c: Campaign): CampaignInput {
     arbiterService: c.arbiterService,
     goalId: c.goalId,
     detailsUrl: c.detailsUrl,
-    categories: c.categories.filter((x) => x !== 'catallax' && x !== GLEANER_TAG),
+    categories: c.categories.filter((x) => x !== 'catallax' && x !== CANVASSTR_TAG && !LEGACY_TAGS.includes(x)),
     deadline: c.content.deadline,
     targets: c.targets,
     rate: c.rate,
@@ -251,7 +254,7 @@ export function buildAcceptanceTemplate(input: AcceptanceInput): EventTemplate {
     ...base,
     tags: [
       ...base.tags,
-      ['t', GLEANER_TAG],
+      ['t', CANVASSTR_TAG],
       ['contribution', contributionRef(input.contribution), relay],
       ['e', input.contribution.id, relay, 'contribution'],
     ],
@@ -278,7 +281,7 @@ export function buildCampaignFinalTemplate(input: CampaignFinalInput): EventTemp
     resolution: input.resolution,
     details: input.details,
   });
-  return { ...base, tags: [...base.tags, ['t', GLEANER_TAG], ['campaign_final', '1']] };
+  return { ...base, tags: [...base.tags, ['t', CANVASSTR_TAG], ['campaign_final', '1']] };
 }
 
 export interface Acceptance extends TaskConclusion {

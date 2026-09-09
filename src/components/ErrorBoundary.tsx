@@ -2,7 +2,7 @@ import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 
 /** localStorage key the query-cache persister writes to (see src/App.tsx). */
-const QUERY_CACHE_KEY = 'gleaner:query-cache';
+const QUERY_CACHE_KEY = 'canvasstr:query-cache';
 
 interface Props {
   children: ReactNode;

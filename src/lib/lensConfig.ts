@@ -26,7 +26,7 @@ export interface LensEnv {
 
 export function readLensEnv(env: Record<string, string | undefined> = import.meta.env as Record<string, string | undefined>): LensEnv {
   return {
-    defaultPov: toHexPubkey(env.VITE_DEFAULT_POV) ?? '393198c60caafe80129194150570e11f5b3b5edb1876179aa652d88557c1ab44',
+    defaultPov: toHexPubkey(env.VITE_DEFAULT_POV) ?? '2efaa715bbb46dd5be6b7da8d7700266d11674b913b8178addb5c2e63d987331',
     houseProvider: toHexPubkey(env.VITE_HOUSE_POV_PROVIDER) ?? '919ba08af7786892093b8264332d817379662a0ba0ba1f5c791ed7b62a7ee2ff',
     nip85Relay: env.VITE_NIP85_RELAY?.trim() || 'wss://nip85.brainstorm.world',
     brainstormSignup: env.VITE_BRAINSTORM_SIGNUP?.trim() || 'https://tapestry.brainstorm.world/pages/customers/sign-up.html',

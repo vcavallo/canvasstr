@@ -4,7 +4,7 @@
  * Wire shapes per tapestry/protocols (decentralized-lists, tags, event-taggings).
  */
 import type { NostrEvent, NostrFilter } from '@nostrify/nostrify';
-import type { CampaignTarget, ContributionKind } from './gleaner';
+import type { CampaignTarget, ContributionKind } from './canvasstr';
 import { STRUCTURAL_TAGS } from './dlist';
 
 export const DLIST_KINDS = { HEADER: 39998, HEADER_REGULAR: 9998, ITEM: 39999, ITEM_REGULAR: 9999 } as const;

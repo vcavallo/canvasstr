@@ -78,7 +78,7 @@ export function LensBar() {
       {state === 'computing' && <span className="flex items-center text-muted-foreground"><Loader2 className="mr-2 h-4 w-4 animate-spin" />Brainstorm is computing your point of view (a few minutes; this checks every minute)</span>}
       {state === 'ready' && !hasMap && !author && (
         <span className="flex flex-wrap items-center gap-2 text-muted-foreground">Your point of view is ready. Last step, one signature:
-          <Button size="sm" variant="outline" disabled={bs.state === 'busy'} onClick={() => void bs.publishTreasureMap()} title="Publishes your kind-10040 Treasure Map so any app (Gleaner included) knows where your scores live. Same as Brainstorm's 'Activate your account' step.">
+          <Button size="sm" variant="outline" disabled={bs.state === 'busy'} onClick={() => void bs.publishTreasureMap()} title="Publishes your kind-10040 Treasure Map so any app (Canvasstr included) knows where your scores live. Same as Brainstorm's 'Activate your account' step.">
             {bs.state === 'busy' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Activate: publish my Treasure Map
           </Button>
         </span>

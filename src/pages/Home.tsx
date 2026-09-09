@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { Layout } from '@/components/gleaner/Layout';
-import { CampaignCard } from '@/components/gleaner/CampaignCard';
-import { CreateCampaignDialog } from '@/components/gleaner/CreateCampaignDialog';
+import { Layout } from '@/components/canvasstr/Layout';
+import { CampaignCard } from '@/components/canvasstr/CampaignCard';
+import { CreateCampaignDialog } from '@/components/canvasstr/CreateCampaignDialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Link } from 'react-router-dom';
 import { useAppContext } from '@/hooks/useAppContext';
@@ -33,7 +33,7 @@ export default function Home() {
 
   return (
     <Layout>
-      <Helmet><title>Gleaner — campaigns</title></Helmet>
+      <Helmet><title>Canvasstr — campaigns</title></Helmet>
       <div className="mb-4 flex items-baseline justify-between">
         <div className="flex items-center gap-3"><h2 className="text-lg font-medium">Campaigns</h2><CreateCampaignDialog /></div>
         <span className="text-sm text-muted-foreground">

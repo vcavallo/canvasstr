@@ -7,7 +7,7 @@
 import type { NostrEvent } from '@nostrify/nostrify';
 import { parseZapReceiptSender } from './catallax';
 import type { Contribution } from './contributions';
-import { campaignSlots, parseAcceptance, type Acceptance, type Campaign, type CampaignFinal } from './gleaner';
+import { campaignSlots, parseAcceptance, type Acceptance, type Campaign, type CampaignFinal } from './canvasstr';
 
 export type RowStatus = 'candidate' | 'accepted' | 'paid' | 'rejected';
 

@@ -14,7 +14,7 @@ import { useNostrPublish } from '@/hooks/useNostrPublish';
 import { useToast } from '@/hooks/useToast';
 import { useArbiterAnnouncements } from '@/hooks/useCatallax';
 import { generateTaskId, type FundingType } from '@/lib/catallax';
-import { buildCampaignTemplate, campaignSlots, type CampaignTarget, type PayoutMode } from '@/lib/gleaner';
+import { buildCampaignTemplate, campaignSlots, type CampaignTarget, type PayoutMode } from '@/lib/canvasstr';
 import { campaignNaddr } from '@/lib/naddr';
 import { getActiveRelays } from '@/lib/relays';
 import { ArbiterPicker, type ArbiterChoice } from './ArbiterPicker';
@@ -77,7 +77,7 @@ export function CreateCampaignDialog() {
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>New campaign</DialogTitle>
-          <DialogDescription>Put sats behind building up a list. Contributors just add to the list; the arbiter pays the good ones.</DialogDescription>
+          <DialogDescription>Put sats behind building up a list. Canvassers add to it; the arbiter pays the good ones.</DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-1"><Label htmlFor="c-title">Title</Label><Input id="c-title" value={title} onChange={(e) => setTitle(e.target.value)} /></div>

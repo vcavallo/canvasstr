@@ -5,7 +5,7 @@
  * optional human description as the third element) plus optional `field-type` hints.
  */
 import type { NostrEvent } from '@nostrify/nostrify';
-import type { EventTemplate } from './gleaner';
+import type { EventTemplate } from './canvasstr';
 
 export type FieldLevel = 'required' | 'recommended' | 'allowed';
 export interface HeaderField { name: string; level: FieldLevel; description?: string; type?: string }

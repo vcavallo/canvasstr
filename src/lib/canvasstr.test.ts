@@ -4,7 +4,7 @@ import {
   acceptedKinds, buildAcceptanceTemplate, buildCampaignDeletionTemplate, buildEndorsementTemplate, deletedCampaignCoords, buildCampaignFinalTemplate, buildCampaignTemplate, campaignSlots,
   campaignToInput, isCampaignEvent, latestAuthoritativeCampaign, markCampaignStatus, parseAcceptance, parseCampaign,
   type CampaignInput,
-} from './gleaner';
+} from './canvasstr';
 import { asEvent } from '@/test/fixtures';
 
 const PATRON = 'a'.repeat(64);
@@ -48,16 +48,16 @@ describe('buildCampaignTemplate', () => {
     expect(t.tags).toContainEqual(['payout', 'streaming']);
     expect(t.tags).toContainEqual(['since', '1700000000']);
     expect(t.tags).toContainEqual(['status', 'open']);
-    expect(t.tags.filter(([n, v]) => n === 't' && (v === 'catallax' || v === 'gleaner'))).toHaveLength(2);
+    expect(t.tags.filter(([n, v]) => n === 't' && (v === 'catallax' || v === 'canvasstr'))).toHaveLength(2);
   });
   it('rejects bad economics', () => {
     expect(() => buildCampaignTemplate({ ...input, rate: 0 })).toThrow();
     expect(() => buildCampaignTemplate({ ...input, targets: [] })).toThrow();
     expect(() => buildCampaignTemplate({ ...input, maxPerPubkey: -1 })).toThrow();
   });
-  it('never emits gleaner twice even if passed as a category', () => {
-    const t2 = buildCampaignTemplate({ ...input, categories: ['gleaner', 'food'] });
-    expect(t2.tags.filter(([n, v]) => n === 't' && v === 'gleaner')).toHaveLength(1);
+  it('never emits canvasstr twice even if passed as a category', () => {
+    const t2 = buildCampaignTemplate({ ...input, categories: ['canvasstr', 'food'] });
+    expect(t2.tags.filter(([n, v]) => n === 't' && v === 'canvasstr')).toHaveLength(1);
     expect(t2.tags).toContainEqual(['t', 'food']);
   });
 });

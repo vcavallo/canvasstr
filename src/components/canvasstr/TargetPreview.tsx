@@ -3,7 +3,7 @@ import { AuthorName } from '@/components/AuthorName';
 import { useDlistHeader } from '@/hooks/useDlistHeader';
 import { useTargetPreview } from '@/hooks/useTargetPreview';
 import { isTagElementTarget } from '@/lib/contributions';
-import type { CampaignTarget } from '@/lib/gleaner';
+import type { CampaignTarget } from '@/lib/canvasstr';
 
 /** What the board will look like for this target: a few existing entries, or the shape of one. */
 export function TargetPreview({ target, relays }: { target: CampaignTarget; relays: string[] }) {

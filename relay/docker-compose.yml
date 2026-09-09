@@ -1,10 +1,10 @@
-# Local strfry relay for Gleaner dev & e2e tests. Dev/test only — never a
+# Local strfry relay for Canvasstr dev & e2e tests. Dev/test only — never a
 # production or privileged relay. The DB is tmpfs (RAM): every start is a clean
 # slate and `down` leaves nothing behind.
 services:
   strfry:
     image: dockurr/strfry
-    container_name: gleaner-strfry
+    container_name: canvasstr-strfry
     ports:
       - "${RELAY_PORT:-7787}:7777"
     volumes:

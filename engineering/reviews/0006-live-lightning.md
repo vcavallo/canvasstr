@@ -17,7 +17,7 @@ Arbiter clicked Accept & pay on "Sushi Kaji"; the script paid the bolt11 from th
 Coinos wallet (`POST /api/payments {payreq}`); alice's balance rose by 500; **no kind 9735
 appeared on any relay**. Cause, from coinos-server source: the LNURL callback overwrites
 `invoice.memo` with the `comment` param, and the internal-payment path only calls
-`handleZap` when the memo still contains the 9734. Gleaner was sending its comment as an
+`handleZap` when the memo still contains the 9734. Canvasstr was sending its comment as an
 LNURL comment. Fix: never send an LNURL comment alongside a zap (the 9734 content carries it).
 The row correctly stayed `candidate`: the ledger never trusts a payment without a receipt.
 
@@ -27,7 +27,7 @@ to paid → 3402 published (receipt at `e[0]`, campaign at `e[1]`, `contribution
 marker-`e`) → kind-7 `+` published. Board totals: 1 paid, 3 of 4 slots left.
 
 Receipt shape observed: Coinos copies `p`, the single `e`, and **only the first `a` tag**
-from the 9734 (plus `P` = payer). Gleaner puts the campaign coordinate first, so `#a`
+from the 9734 (plus `P` = payer). Canvasstr puts the campaign coordinate first, so `#a`
 discovery works; the list coordinate is dropped by Coinos. PROTOCOL.md §5 should say the
 campaign `a` MUST come first.
 

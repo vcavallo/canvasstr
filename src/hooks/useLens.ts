@@ -68,7 +68,7 @@ export interface LensState {
 export function useLens(): LensState {
   const [params, setParams] = useSearchParams();
   const { user } = useCurrentUser();
-  const [minRank, setMinRank] = useLocalStorage<number>('gleaner:min-rank', 1);
+  const [minRank, setMinRank] = useLocalStorage<number>('canvasstr:min-rank', 1);
   const urlPov = toHexPubkey(params.get('pov'));
   const author = toHexPubkey(params.get('author'));
   const self = user?.pubkey;

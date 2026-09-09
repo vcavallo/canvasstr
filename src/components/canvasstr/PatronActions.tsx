@@ -14,7 +14,7 @@ import { useNostr } from '@nostrify/react';
 import { readLensEnv } from '@/lib/lensConfig';
 import { parseZapReceiptAmount, parseZapReceiptSender } from '@/lib/catallax';
 import { buildZapGoalTemplate, formatSats } from '@/lib/catallax';
-import { buildCampaignDeletionTemplate, buildCampaignTemplate, campaignCoord, campaignToInput, type Campaign } from '@/lib/gleaner';
+import { buildCampaignDeletionTemplate, buildCampaignTemplate, campaignCoord, campaignToInput, type Campaign } from '@/lib/canvasstr';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useNavigate } from 'react-router-dom';
 import { getActiveRelays } from '@/lib/relays';
@@ -93,14 +93,14 @@ export function PatronActions({ campaign }: { campaign: Campaign }) {
     if (!campaign.arbiterPubkey || !campaign.goalId) return;
     setPay({
       recipientPubkey: campaign.arbiterPubkey, amountSats: Math.min(1000, parseInt(campaign.amount, 10)), eventId: campaign.goalId, relays,
-      extraTags: [['a', coord]], title: 'Contribute to the escrow', description: 'Sats go to the arbiter, who pays contributors from them.',
+      extraTags: [['a', coord]], title: 'Contribute to the escrow', description: 'Sats go to the arbiter, who pays canvassers from them.',
     });
   };
 
   const deleteCampaign = async () => {
     try {
       await publish(buildCampaignDeletionTemplate(campaign, 'campaign deleted by patron'));
-      toast({ title: 'Campaign deleted', description: 'Relays that honour deletions will drop it; Gleaner hides it everywhere.' });
+      toast({ title: 'Campaign deleted', description: 'Relays that honour deletions will drop it; Canvasstr hides it everywhere.' });
       navigate('/');
     } catch (e) { toast({ title: 'Delete failed', description: e instanceof Error ? e.message : String(e), variant: 'destructive' }); }
   };
@@ -156,7 +156,7 @@ export function PatronActions({ campaign }: { campaign: Campaign }) {
         {(isPatron || isArbiter) && campaign.status === 'funded' && (
           <Button size="sm" disabled={isPending} onClick={() => republish({ status: 'open' }, 'Open for contributions')}>{isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Open for contributions</Button>
         )}
-        {campaign.status === 'open' && <p className="text-muted-foreground">Open. Contributions to the target lists are being judged by the arbiter.</p>}
+        {campaign.status === 'open' && <p className="text-muted-foreground">Open. Canvassers' contributions are being judged by the arbiter.</p>}
         {deleteControl}
         <PayDialog request={pay} onReceipt={(r) => { setPay(null); if (!crowd) void markFunded(r); }} onClose={() => setPay(null)} />
       </CardContent>

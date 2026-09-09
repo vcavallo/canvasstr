@@ -4,7 +4,7 @@
  * deterministic d, `p` target, `a` tag coordinate (stable identity), `e` tag event id
  * (provenance), dual `z` (canonical legacy namespace + the deployment's TA), polarity.
  */
-import type { EventTemplate } from './gleaner';
+import type { EventTemplate } from './canvasstr';
 
 /** ADR 0015: the nostr-user-tag concept is pinned to this literal namespace across deployments. */
 export const LEGACY_TAG_NAMESPACE = '82b75e474dda005e912bcbb910391c60c2b89cc7faf5d3c30b7c59a324973833';

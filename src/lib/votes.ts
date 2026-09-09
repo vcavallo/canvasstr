@@ -5,7 +5,7 @@
  */
 import type { NostrEvent, NostrFilter } from '@nostrify/nostrify';
 import type { Contribution } from './contributions';
-import type { EventTemplate } from './gleaner';
+import type { EventTemplate } from './canvasstr';
 import type { Score } from './pov';
 
 export interface Vote {
@@ -88,7 +88,7 @@ export function tallyVotes(
   return out;
 }
 
-/** A vote that both DList clients and Gleaner can attribute: `e` + `a` + `p` + `k`. */
+/** A vote that both DList clients and Canvasstr can attribute: `e` + `a` + `p` + `k`. */
 export function buildVoteTemplate(c: Pick<Contribution, 'id' | 'ref' | 'pubkey' | 'kind'>, value: 1 | -1, relay?: string): EventTemplate {
   const tags: string[][] = [['e', c.id, relay ?? ''], ['p', c.pubkey], ['k', String(c.kind)]];
   if (c.kind === 39999) tags.push(['a', c.ref, relay ?? '']);

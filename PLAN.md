@@ -1,4 +1,4 @@
-# Gleaner build plan
+# Canvasstr build plan
 
 Decisions taken (2026-09-07):
 

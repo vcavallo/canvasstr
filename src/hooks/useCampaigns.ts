@@ -1,10 +1,10 @@
 import { useMemo } from 'react';
 import type { NostrEvent, NostrFilter } from '@nostrify/nostrify';
 import { CATALLAX_KINDS } from '@/lib/catallax';
-import { GLEANER_TAG, campaignCoord, deletedCampaignCoords, latestAuthoritativeCampaign, parseCampaign, type Campaign } from '@/lib/gleaner';
+import { DISCOVERY_TAGS, campaignCoord, deletedCampaignCoords, latestAuthoritativeCampaign, parseCampaign, type Campaign } from '@/lib/canvasstr';
 import { useLiveEvents } from './useLiveEvents';
 
-const CAMPAIGN_FILTER: NostrFilter[] = [{ kinds: [CATALLAX_KINDS.TASK_PROPOSAL], '#t': [GLEANER_TAG], limit: 500 }];
+const CAMPAIGN_FILTER: NostrFilter[] = [{ kinds: [CATALLAX_KINDS.TASK_PROPOSAL], '#t': DISCOVERY_TAGS, limit: 500 }];
 const DELETION_FILTER: NostrFilter = { kinds: [5], '#k': [String(CATALLAX_KINDS.TASK_PROPOSAL)], limit: 500 };
 
 /** Every campaign on the active relays, latest authoritative version per patron:d. */
@@ -34,7 +34,7 @@ export function useCampaigns(extra?: Partial<NostrFilter>) {
 /** One campaign by patron + d, live (patron- or arbiter-signed updates included). */
 export function useCampaign(patron: string | undefined, d: string | undefined) {
   const filters = useMemo<NostrFilter[]>(
-    () => (patron && d ? [{ kinds: [CATALLAX_KINDS.TASK_PROPOSAL], '#d': [d], '#t': [GLEANER_TAG] }, { kinds: [5], '#a': [`${CATALLAX_KINDS.TASK_PROPOSAL}:${patron}:${d}`] }] : []),
+    () => (patron && d ? [{ kinds: [CATALLAX_KINDS.TASK_PROPOSAL], '#d': [d], '#t': DISCOVERY_TAGS }, { kinds: [5], '#a': [`${CATALLAX_KINDS.TASK_PROPOSAL}:${patron}:${d}`] }] : []),
     [patron, d],
   );
   const live = useLiveEvents(filters.length ? filters : null);

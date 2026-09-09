@@ -4,11 +4,11 @@
  * have to pick "tag" vs "list" themselves.
  */
 import type { HeaderSchema } from './dlist';
-import type { CampaignTarget } from './gleaner';
+import type { CampaignTarget } from './canvasstr';
 
 export type Intent = 'people' | 'things' | 'notes';
 
-/** Intents offered in the UI. `notes` exists in the model but is hidden until the ecosystem's note-tagging settles and Gleaner has a "tag a note" form. */
+/** Intents offered in the UI. `notes` exists in the model but is hidden until the ecosystem's note-tagging settles and Canvasstr has a "tag a note" form. */
 export const INTENTS: { id: Intent; label: string; blurb: string; hidden?: boolean }[] = [
   { id: 'people', label: 'People', blurb: 'Contributors tag or add nostr profiles. Example: podcasters, developers, people to follow.' },
   { id: 'things', label: 'Things on a list', blurb: 'Contributors add items with fields. Example: restaurants in Toronto, GitHub accounts, songs.' },

@@ -1,6 +1,9 @@
-# Gleaner protocol extension to Catallax (NIP-3400)
+# Canvasstr protocol extension to Catallax (NIP-3400)
 
-Status: draft, v0. This document describes how Gleaner uses Catallax kinds 33400 / 33401 / 3402
+Roles, in Canvasstr's words: the **patron** funds a campaign, the **arbiter** judges and pays, and
+**canvassers** (Catallax's free agents) go out and fill the list.
+
+Status: draft, v0. This document describes how Canvasstr uses Catallax kinds 33400 / 33401 / 3402
 and NIP-75 kind 9041 to pay many contributors for building up Tapestry decentralized lists
 (DLists) and taggings. It adds **no new event kinds**. It adds a handful of tags to 33401 and
 3402, one new `status` value, and a convention for issuing one 3402 per accepted contribution.
@@ -10,7 +13,7 @@ tagging wire formats).
 
 ## 1. Vocabulary
 
-| Catallax term | Gleaner meaning |
+| Catallax term | Canvasstr meaning |
 |---|---|
 | Patron | Creates a **campaign** and funds it (self-funded or crowdfunded via a 9041 goal). |
 | Arbiter | Holds escrow, judges each contribution, pays contributors one by one, publishes 3402s. May be the patron. |
@@ -33,7 +36,7 @@ positionally, so a campaign reads to them as a funded task with no worker, which
 Added tags:
 
 ```
-["t", "gleaner"]                                  discovery: all campaigns
+["t", "canvasstr"]                                discovery: all campaigns (readers also accept the pre-rename "gleaner")
 ["campaign", "curation"]                          marks this 33401 as a multi-contributor campaign
 ["target", "<z-value>", "<relay-url>", "<hint>"]  what counts; repeatable (see §3)
 ["rate", "<sats per accepted contribution>"]
@@ -45,7 +48,7 @@ Added tags:
 ```
 
 `target`, `campaign`, `rate` etc. are multi-letter tags and therefore not relay-indexed. Clients
-discover campaigns with `{"kinds":[33401],"#t":["gleaner"]}` and filter by target client-side.
+discover campaigns with `{"kinds":[33401],"#t":["canvasstr","gleaner"]}` and filter by target client-side.
 This is deliberate: `a` on a 33401 already means "arbiter service" and `z` on a non-DList event
 would be read by Tapestry as list membership, so neither is safe to reuse.
 
@@ -89,7 +92,7 @@ Rules for counting a candidate:
 - Everything is a **candidate** until the arbiter accepts it. Relay hits are never truth.
 - Rows are ordered by the contribution's `created_at`, and a later submission of the same thing
   is marked as a duplicate of the earliest. `created_at` is the author's claim; a relay may
-  reject absurd values but nothing here can verify it. Gleaner does not try: an author who
+  reject absurd values but nothing here can verify it. Canvasstr does not try: an author who
   backdates to jump the queue is exactly the kind of behaviour the lens (GrapeRank from the
   viewer's point of view) is meant to price in over time.
 - The arbiter may use any web-of-trust signal (a viewer's GrapeRank via kind 30382 / Open
@@ -106,13 +109,13 @@ with the contributor as the worker `p`:
 ["p", "<patron>"] ["p", "<arbiter>"] ["p", "<contributor>"]
 ["resolution", "successful"]
 ["a", "33401:<patron>:<campaign d>", "<relay>"]
-["t", "catallax"] ["t", "gleaner"]
+["t", "catallax"] ["t", "canvasstr"]
 ["contribution", "<39999 coordinate or 9999 event id>", "<relay>"]   NEW
 ["e", "<contribution event id>", "<relay>", "contribution"]          NEW, position ≥ 2, marker "contribution"
 ```
 
 Existing clients read `e` positionally (payout, task) and ignore the third `e`; the
-`contribution` tag is the stable reference for Gleaner clients. The marker-`e` makes
+`contribution` tag is the stable reference for Canvasstr clients. The marker-`e` makes
 "was this contribution accepted?" answerable with `{"kinds":[3402],"#e":[<contribution id>]}`.
 
 A 3402 with `resolution rejected`, no payout receipt, and the same `contribution` tags records
@@ -168,7 +171,7 @@ On acceptance the arbiter's client MAY also publish a NIP-25 kind 7 reaction `+`
 costs nothing and lets Tapestry-aware readers weight accepted items without knowing about
 Catallax.
 
-Gleaner also reads and casts ordinary NIP-25 votes on contributions. A Gleaner vote carries
+Canvasstr also reads and casts ordinary NIP-25 votes on contributions. A Canvasstr vote carries
 `e` (item id), `a` (item coordinate, 39999 only), `p` (item author) and `k`, so both id-keyed and
 coordinate-keyed readers attribute it. Votes are tallied per coordinate (surviving republishes),
 latest vote per voter wins, self-votes are ignored, and counts are shown twice: from voters at or
@@ -181,11 +184,11 @@ above the viewer's lens threshold, and in total.
   (federated namespaces, dual-`z` writes)? v0 answer: no; the arbiter can add a candidate by id.
 - Per-target rates within one campaign (tagging pays less than adding an item). v0: one rate;
   make two campaigns.
-- Whether Tapestry should learn to read Gleaner 3402s as an endorsement input. Out of scope here.
+- Whether Tapestry should learn to read Canvasstr 3402s as an endorsement input. Out of scope here.
 
 ## 8. Lens: everything is read from a point of view
 
-Gleaner never shows "all campaigns". Every screen is rendered under a **lens**, a pubkey `P`
+Canvasstr never shows "all campaigns". Every screen is rendered under a **lens**, a pubkey `P`
 whose web of trust decides what is visible and how it is ordered. Nothing here gates
 publishing; a lens only filters reads.
 
@@ -237,6 +240,6 @@ looked at, judged by an arbiter, paid, and starts accruing trust. The escape hat
 changes the default view for anyone else.
 
 **Why not curator lists.** Grantless scoped reads with hand-curated kind 30392 lists.
-Gleaner uses computed GrapeRank scores instead, because Tapestry already publishes them per
+Canvasstr uses computed GrapeRank scores instead, because Tapestry already publishes them per
 observer and a new viewer gets a lens by creating a POV on Brainstorm rather than by finding a
 curator. Hand-curated 30392s still work as a lens for a `P` whose 10040 delegates to one.

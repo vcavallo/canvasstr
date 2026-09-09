@@ -2,7 +2,7 @@ import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { formatSats } from '@/lib/catallax';
-import type { Campaign } from '@/lib/gleaner';
+import type { Campaign } from '@/lib/canvasstr';
 import type { Ledger, LedgerRow } from '@/lib/ledger';
 import type { ArbiterActions } from '@/hooks/useArbiterActions';
 import { PayDialog } from './PayDialog';

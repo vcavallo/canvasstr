@@ -8,10 +8,10 @@ import { usePublishTo } from '@/hooks/usePublishTo';
 import { useToast } from '@/hooks/useToast';
 import { formatSats } from '@/lib/catallax';
 import type { Contribution } from '@/lib/contributions';
-import { buildAcceptanceTemplate, buildCampaignFinalTemplate, buildCampaignTemplate, buildConclusionRetractionTemplate, buildEndorsementTemplate, campaignCoord, campaignToInput, type Campaign } from '@/lib/gleaner';
+import { buildAcceptanceTemplate, buildCampaignFinalTemplate, buildCampaignTemplate, buildConclusionRetractionTemplate, buildEndorsementTemplate, campaignCoord, campaignToInput, type Campaign } from '@/lib/canvasstr';
 import type { Ledger } from '@/lib/ledger';
 import { getActiveRelays } from '@/lib/relays';
-import type { PayRequest } from '@/components/gleaner/PayDialog';
+import type { PayRequest } from '@/components/canvasstr/PayDialog';
 
 interface Pending { contribution: Contribution; request: PayRequest }
 
@@ -30,7 +30,7 @@ export function useArbiterActions(campaign: Campaign, ledger: Ledger | null) {
   const { toast } = useToast();
   const [pending, setPending] = useState<Pending | null>(null);
   const [queue, setQueue] = useState<Contribution[]>([]);
-  const [shortlist, setShortlist] = useLocalStorage<string[]>(`gleaner:shortlist:${campaignCoord(campaign)}`, []);
+  const [shortlist, setShortlist] = useLocalStorage<string[]>(`canvasstr:shortlist:${campaignCoord(campaign)}`, []);
   const [refund, setRefund] = useState<PayRequest | null>(null);
 
   const isArbiter = !!user && user.pubkey === campaign.arbiterPubkey;
@@ -41,8 +41,8 @@ export function useArbiterActions(campaign: Campaign, ledger: Ledger | null) {
 
   const payRequestFor = (c: Contribution): PayRequest => ({
     recipientPubkey: c.pubkey, amountSats: campaign.rate, eventId: c.id, relays: targetRelaysFor(c),
-    extraTags: [['a', coord], ['a', c.target]], comment: `Gleaner: ${campaign.content.title}`,
-    title: `Pay ${formatSats(campaign.rate)}`, description: `To the contributor of "${c.label}". The acceptance is published once the receipt lands.`,
+    extraTags: [['a', coord], ['a', c.target]], comment: `Canvasstr: ${campaign.content.title}`,
+    title: `Pay ${formatSats(campaign.rate)}`, description: `To the canvasser who added "${c.label}". The acceptance is published once the receipt lands.`,
   });
 
   /** Accept now (streaming) — opens the pay dialog. */

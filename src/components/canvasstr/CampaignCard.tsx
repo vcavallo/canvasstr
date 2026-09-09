@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatSats } from '@/lib/catallax';
 import { campaignNaddr } from '@/lib/naddr';
-import { campaignSlots, type Campaign } from '@/lib/gleaner';
+import { campaignSlots, type Campaign } from '@/lib/canvasstr';
 import { classifyTarget } from '@/lib/contributions';
 import type { Score } from '@/lib/pov';
 import { RankBadge } from './RankBadge';

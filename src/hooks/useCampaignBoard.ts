@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import type { NostrFilter } from '@nostrify/nostrify';
 import { CATALLAX_KINDS } from '@/lib/catallax';
 import { collectContributions, targetsToFilters } from '@/lib/contributions';
-import { campaignCoord, type Campaign } from '@/lib/gleaner';
+import { campaignCoord, type Campaign } from '@/lib/canvasstr';
 import { buildLedger, type Ledger } from '@/lib/ledger';
 import { votesFilters } from '@/lib/votes';
 import { useLiveEvents } from './useLiveEvents';

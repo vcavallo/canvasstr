@@ -10,7 +10,7 @@ import { useLens } from '@/hooks/useLens';
 import { usePublishTo } from '@/hooks/usePublishTo';
 import { useToast } from '@/hooks/useToast';
 import { isTagElementTarget } from '@/lib/contributions';
-import type { Campaign } from '@/lib/gleaner';
+import type { Campaign } from '@/lib/canvasstr';
 import { buildProfileTagTemplate } from '@/lib/profileTag';
 import { genUserName } from '@/lib/genUserName';
 

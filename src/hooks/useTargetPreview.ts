@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useNostr } from '@nostrify/react';
 import type { NostrEvent } from '@nostrify/nostrify';
 import { collectContributions, targetsToFilters, type Contribution } from '@/lib/contributions';
-import type { CampaignTarget } from '@/lib/gleaner';
+import type { CampaignTarget } from '@/lib/canvasstr';
 
 /** Up to `limit` existing entries for a target (and whether there are more), for previews and counts. */
 export function useTargetPreview(target: CampaignTarget | undefined, relays: string[], limit = 5) {

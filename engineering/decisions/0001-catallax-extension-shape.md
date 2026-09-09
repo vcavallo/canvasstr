@@ -7,7 +7,7 @@
 
 Catallax (NIP-3400) models one task, one worker: clients read the patron, arbiter and worker as
 the first three `p` tags of a kind 33401, and a kind 3402 conclusion carries one worker `p` and
-one payout receipt. Gleaner needs many contributors per bounty, paid individually after a human
+one payout receipt. Canvasstr needs many contributors per bounty, paid individually after a human
 arbiter judges each contribution. Options were: (A) new event kinds; (B) marker-tagged `p`s on
 the 33401, which breaks positional parsers in both existing clients; (C) keep the 33401 worker
 slot empty and issue one 3402 per accepted contribution.

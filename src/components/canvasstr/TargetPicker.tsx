@@ -11,7 +11,7 @@ import { useDlistHeaders } from '@/hooks/useDlistHeaders';
 import { useLens, useRanks } from '@/hooks/useLens';
 import { useTagElements } from '@/hooks/useTagElements';
 import { parseHeaderSchema } from '@/lib/dlist';
-import type { CampaignTarget } from '@/lib/gleaner';
+import type { CampaignTarget } from '@/lib/canvasstr';
 import { INTENTS, listToOption, optionMatchesIntent, tagToNotesOption, tagToPeopleOption, type Intent, type TargetOption } from '@/lib/intent';
 import { passesLens } from '@/lib/pov';
 import { TargetOptionRow } from './TargetOptionRow';

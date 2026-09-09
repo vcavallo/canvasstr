@@ -36,7 +36,7 @@ const queryClient = new QueryClient({
 // schema version — bump it to discard all persisted data on a breaking cache change.
 const persister = createSyncStoragePersister({
   storage: typeof window !== 'undefined' ? window.localStorage : undefined,
-  key: 'gleaner:query-cache',
+  key: 'canvasstr:query-cache',
   // superjson (not plain JSON) so query data containing Maps/Sets/Dates round-trips
   // correctly — several hooks return Map data (e.g. useGoalsProgress, useNomineeProfiles),
   // and JSON would silently turn a Map into {} and crash consumers on restore.

@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import type { NostrFilter } from '@nostrify/nostrify';
 import { collectContributions, DLIST_KINDS, type Contribution } from '@/lib/contributions';
-import type { Campaign } from '@/lib/gleaner';
+import type { Campaign } from '@/lib/canvasstr';
 import { useLiveEvents } from './useLiveEvents';
 
 export interface AuthorContribution { campaign: Campaign; contribution: Contribution }

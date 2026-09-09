@@ -1,17 +1,17 @@
 import { useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link, useParams } from 'react-router-dom';
-import { Layout } from '@/components/gleaner/Layout';
-import { BoardRow } from '@/components/gleaner/BoardRow';
-import { PatronActions } from '@/components/gleaner/PatronActions';
-import { ContributeItemDialog } from '@/components/gleaner/ContributeItemDialog';
-import { TagProfileDialog } from '@/components/gleaner/TagProfileDialog';
-import { VoteButtons } from '@/components/gleaner/VoteButtons';
+import { Layout } from '@/components/canvasstr/Layout';
+import { BoardRow } from '@/components/canvasstr/BoardRow';
+import { PatronActions } from '@/components/canvasstr/PatronActions';
+import { ContributeItemDialog } from '@/components/canvasstr/ContributeItemDialog';
+import { TagProfileDialog } from '@/components/canvasstr/TagProfileDialog';
+import { VoteButtons } from '@/components/canvasstr/VoteButtons';
 import { tallyVotes } from '@/lib/votes';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
-import { ArbiterPanel, ArbiterRowControls } from '@/components/gleaner/ArbiterActions';
+import { ArbiterPanel, ArbiterRowControls } from '@/components/canvasstr/ArbiterActions';
 import { useArbiterActions } from '@/hooks/useArbiterActions';
-import { RankBadge } from '@/components/gleaner/RankBadge';
+import { RankBadge } from '@/components/canvasstr/RankBadge';
 import { AuthorAvatar } from '@/components/AuthorAvatar';
 import { AuthorName } from '@/components/AuthorName';
 import { Badge } from '@/components/ui/badge';
@@ -26,7 +26,7 @@ import { decodeCampaignNaddr } from '@/lib/naddr';
 import { getActiveRelays } from '@/lib/relays';
 import { passesLens } from '@/lib/pov';
 
-const FALLBACK = { patronPubkey: '', d: '', id: '', amount: '0', rate: 1, targets: [], content: { title: '', description: '', requirements: '' }, status: 'proposed', pubkey: '', created_at: 0, categories: [], fundingType: 'single', payout: 'streaming' } as unknown as import('@/lib/gleaner').Campaign;
+const FALLBACK = { patronPubkey: '', d: '', id: '', amount: '0', rate: 1, targets: [], content: { title: '', description: '', requirements: '' }, status: 'proposed', pubkey: '', created_at: 0, categories: [], fundingType: 'single', payout: 'streaming' } as unknown as import('@/lib/canvasstr').Campaign;
 
 export default function CampaignBoard() {
   const { naddr } = useParams();
@@ -62,7 +62,7 @@ export default function CampaignBoard() {
 
   return (
     <Layout>
-      <Helmet><title>{campaign.content.title} — Gleaner</title></Helmet>
+      <Helmet><title>{campaign.content.title} — Canvasstr</title></Helmet>
       <div className="mb-6 space-y-3">
         <div className="flex items-start justify-between gap-4">
           <h2 className="text-2xl font-semibold">{campaign.content.title}</h2>

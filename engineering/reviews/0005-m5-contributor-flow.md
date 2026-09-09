@@ -15,7 +15,7 @@
 ## Facts from the tapestry session (2026-09-07)
 - Tapestry exposes no prefilled deep link for adding an item, applying a tag, or creating a
   tag-element; contribution affordances are login-gated in-page modals. Direct kind-39999
-  publication from Gleaner is the intended integration. Linkable destinations only:
+  publication from Canvasstr is the intended integration. Linkable destinations only:
   `/user/<hex>`, `/event?nevent=…`, `/tag/<slug>/<tag-event-id>`, `/tags` on
   tags.brainstorm.world (the reference deployment has no tag UI yet).
 

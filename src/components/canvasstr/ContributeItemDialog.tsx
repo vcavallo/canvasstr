@@ -14,10 +14,10 @@ import { usePublishTo } from '@/hooks/usePublishTo';
 import { useToast } from '@/hooks/useToast';
 import { classifyTarget } from '@/lib/contributions';
 import { buildDlistItemTemplate, randomSuffix, STANDARD_OPTIONAL } from '@/lib/dlist';
-import type { Campaign } from '@/lib/gleaner';
+import type { Campaign } from '@/lib/canvasstr';
 
 /**
- * Publish a DList item straight from Gleaner. The form is generated from the target list's
+ * Publish a DList item straight from Canvasstr. The form is generated from the target list's
  * kind-39998 header: `required` fields are marked, `recommended`/`allowed` are optional,
  * `field-type` picks the input. The event is exactly what Tapestry would publish.
  */
@@ -63,7 +63,7 @@ export function ContributeItemDialog({ campaign, relays }: { campaign: Campaign;
         <DialogHeader>
           <DialogTitle>Add {schema ? `a ${schema.singular}` : 'an item'}</DialogTitle>
           <DialogDescription>
-            {schema?.description ? `${schema.description}. ` : ''}Publishes a signed list item under your key. The arbiter decides whether it earns {campaign.rate.toLocaleString()} sats.
+            {schema?.description ? `${schema.description}. ` : ''}Publishes a signed list item under your key (you are the canvasser). The arbiter decides whether it earns {campaign.rate.toLocaleString()} sats.
           </DialogDescription>
         </DialogHeader>
         {header.isLoading ? <p className="flex items-center text-sm text-muted-foreground"><Loader2 className="mr-2 h-4 w-4 animate-spin" />Reading the list's header…</p> : (

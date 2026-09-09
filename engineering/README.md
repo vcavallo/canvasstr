@@ -1,4 +1,4 @@
-# Engineering record — Gleaner
+# Engineering record — Canvasstr
 
 A light version of Tapestry's `engineering-team/` harness: the artifacts without the workflow.
 

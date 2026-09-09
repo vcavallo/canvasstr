@@ -11,7 +11,7 @@ observer and publishes scores as kind 30382, discoverable through the observer's
 
 ## Decision
 
-Gleaner is POV-centric. The lens is resolved as: `?pov=` URL param, else the logged-in user's
+Canvasstr is POV-centric. The lens is resolved as: `?pov=` URL param, else the logged-in user's
 own 10040, else `VITE_DEFAULT_POV` (Vinney), else a configured house provider (a Tapestry
 deployment assistant key). Scores are read as `{"kinds":[30382],"authors":[provider],"#d":[…]}`
 with the `rank` tag (0–100). The lens filters and orders reads only; publishing is never gated.

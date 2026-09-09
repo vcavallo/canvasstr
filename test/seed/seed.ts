@@ -1,5 +1,5 @@
 /**
- * Seed a local strfry with a reproducible Gleaner world so the board can be exercised
+ * Seed a local strfry with a reproducible Canvasstr world so the board can be exercised
  * without touching public relays. Run: `npm run seed` (relay from `npm run relay:up`).
  *
  * Keys are fixed, throwaway dev keys — never use them for anything real.
@@ -9,7 +9,7 @@ import { Relay } from 'nostr-tools/relay';
 import { nip19 } from 'nostr-tools';
 import { existsSync, readFileSync } from 'node:fs';
 import { buildArbiterAnnouncementTemplate } from '../../src/lib/catallax';
-import { buildAcceptanceTemplate, buildCampaignTemplate, parseCampaign, type Campaign } from '../../src/lib/gleaner';
+import { buildAcceptanceTemplate, buildCampaignTemplate, parseCampaign, type Campaign } from '../../src/lib/canvasstr';
 
 const RELAY = process.env.SEED_RELAY_URL ?? 'ws://127.0.0.1:7787';
 /** SEED_PUBLIC=1: real relay mode — no fake receipts/conclusions, real Coinos lud16s from .coinos-dev.json. */
@@ -50,7 +50,7 @@ async function main() {
 
   for (const [who, name] of [['patron', 'Pat the Patron'], ['arbiter', 'Arbie'], ['alice', 'alice'], ['bob', 'bob'], ['carol', 'carol']] as [Who, string][]) {
     const lud16 = COINOS[who] ? `${COINOS[who].username}@coinos.io` : `${who}@example.invalid`;
-    await pub(who, { kind: 0, content: JSON.stringify({ name: PUBLIC ? `${name} (gleaner dev)` : name, about: `Gleaner dev seed (${name})`, lud16 }), tags: [] });
+    await pub(who, { kind: 0, content: JSON.stringify({ name: PUBLIC ? `${name} (canvasstr dev)` : name, about: `Canvasstr dev seed (${name})`, lud16 }), tags: [] });
   }
 
   const svc = await pub('arbiter', buildArbiterAnnouncementTemplate({ d: 'gleaner-arbiter', pubkey: pk('arbiter'), name: 'Arbie judges lists', feeType: 'flat', feeAmount: '0' }));
