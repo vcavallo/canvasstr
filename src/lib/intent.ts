@@ -8,10 +8,11 @@ import type { CampaignTarget } from './gleaner';
 
 export type Intent = 'people' | 'things' | 'notes';
 
-export const INTENTS: { id: Intent; label: string; blurb: string }[] = [
+/** Intents offered in the UI. `notes` exists in the model but is hidden until the ecosystem's note-tagging settles and Gleaner has a "tag a note" form. */
+export const INTENTS: { id: Intent; label: string; blurb: string; hidden?: boolean }[] = [
   { id: 'people', label: 'People', blurb: 'Contributors tag or add nostr profiles. Example: podcasters, developers, people to follow.' },
   { id: 'things', label: 'Things on a list', blurb: 'Contributors add items with fields. Example: restaurants in Toronto, GitHub accounts, songs.' },
-  { id: 'notes', label: 'Notes or events', blurb: 'Contributors tag existing notes. Example: great threads about X, memes, bug reports.' },
+  { id: 'notes', label: 'Notes or events', blurb: 'Contributors tag existing notes. Example: great threads about X, memes, bug reports.', hidden: true },
 ];
 
 /** A DList whose items are pubkeys (header requires or allows a `p` payload). */

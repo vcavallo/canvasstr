@@ -83,8 +83,8 @@ export function TargetPicker({ value, onChange, relays }: { value: CampaignTarge
     <div className="space-y-3">
       <div className="space-y-1">
         <Label>What do contributors add?</Label>
-        <RadioGroup value={intent ?? ''} onValueChange={(v) => { setIntent(v as Intent); setSearch(''); setShowAll(false); }} className="grid gap-2 sm:grid-cols-3">
-          {INTENTS.map((i) => (
+        <RadioGroup value={intent ?? ''} onValueChange={(v) => { setIntent(v as Intent); setSearch(''); setShowAll(false); }} className="grid gap-2 sm:grid-cols-2">
+          {INTENTS.filter((i) => !i.hidden).map((i) => (
             <label key={i.id} htmlFor={`intent-${i.id}`} className={`flex cursor-pointer items-start gap-2 rounded-md border p-2 ${intent === i.id ? 'border-primary bg-muted/40' : ''}`}>
               <RadioGroupItem id={`intent-${i.id}`} value={i.id} className="mt-0.5" />
               <span><span className="font-medium">{i.label}</span><br /><span className="text-xs text-muted-foreground">{i.blurb}</span></span>

@@ -19,3 +19,4 @@
 - 2026-09-09 — Target search covers tag elements (exact-slug query first); board detects a late/elsewhere escrow receipt and offers "mark funded with this receipt"; receipt lookups also check damus, nos.lol, primal.
 - 2026-09-09 — "Tag someone as X" form on tag campaigns (publishes a Tapestry nostr-user-tag assertion; profile search via Brainstorm NIP-50 with observer scoping); tagged profiles show avatar+name in rows and reference rows.
 - 2026-09-09 — Intent-first target picker (People / Things / Notes), annotated + lens-ranked results with counts, target preview; profile picker for people-lists (review 0007).
+- 2026-09-09 — "Notes or events" intent hidden in the form until note-tagging is ready.
