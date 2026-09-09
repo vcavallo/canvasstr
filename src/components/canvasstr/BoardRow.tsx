@@ -26,7 +26,7 @@ function describe(row: LedgerRow, relays?: string[]): React.ReactNode {
   }
 }
 
-export function BoardRow({ row, score, unranked, dim, relays, votes, arbiterView, children }: { row: LedgerRow; score?: Score; unranked?: boolean; dim?: boolean; relays?: string[]; votes?: React.ReactNode; /** Judging aids (submission time, duplicate marker) — arbiter of this campaign only. */ arbiterView?: boolean; children?: React.ReactNode }) {
+export function BoardRow({ row, score, unranked, dim, relays, votes, arbiterView, children }: { row: LedgerRow; score?: Score; unranked?: boolean; dim?: boolean; relays?: string[]; votes?: React.ReactNode; /** Judging aids (submission time, duplicate marker) — purser of this campaign only. */ arbiterView?: boolean; children?: React.ReactNode }) {
   const s = STATUS[row.status];
   return (
     <li className={cn('rounded-md border px-3 py-2 transition-colors', row.status === 'paid' && 'bg-green-50 dark:bg-green-950/30', dim && 'opacity-50')}>
@@ -44,7 +44,7 @@ export function BoardRow({ row, score, unranked, dim, relays, votes, arbiterView
           </time>}
           {arbiterView && row.duplicateOf !== undefined && <Badge variant="outline" className="gap-1 text-muted-foreground" title={row.duplicateOf === 'existing' ? 'This was already on the list before the campaign started' : 'Same item submitted earlier by another contributor'}><Copy className="h-3 w-3" />{row.duplicateOf === 'existing' ? 'already on the list' : `same as #${row.duplicateOf}`}</Badge>}
           {votes}
-          {row.selfDealing && <Badge variant="outline" className="text-muted-foreground" title="Added by the patron or arbiter; never paid and never takes a slot">own entry, not eligible</Badge>}
+          {row.selfDealing && <Badge variant="outline" className="text-muted-foreground" title="Added by the patron or purser; never paid and never takes a slot">own entry, not eligible</Badge>}
           {!row.fundable && !row.selfDealing && row.status === 'candidate' && <Badge variant="outline" className="text-muted-foreground">beyond budget</Badge>}
           {row.paidSats !== undefined && <span className="text-sm tabular-nums">{formatSats(row.paidSats)}</span>}
           <span className={cn('flex items-center gap-1 text-sm', s.tone)}>{s.icon}{s.label}</span>

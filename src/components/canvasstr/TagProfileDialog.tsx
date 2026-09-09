@@ -50,7 +50,7 @@ export function TagProfileDialog({ campaign, relays }: { campaign: Campaign; rel
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Tag a profile as {slug}</DialogTitle>
-          <DialogDescription>Publishes a signed tagging under your key, the same event Tapestry publishes. The arbiter decides whether it earns {campaign.rate.toLocaleString()} sats.</DialogDescription>
+          <DialogDescription>Publishes a signed tagging under your key, the same event Tapestry publishes. The purser decides whether it earns {campaign.rate.toLocaleString()} sats.</DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
           {tagTargets.length > 1 && (
@@ -86,7 +86,7 @@ export function TagProfileDialog({ campaign, relays }: { campaign: Campaign; rel
               </>
             )}
           </div>
-          {isInsider && <p className="text-xs text-muted-foreground">You are the patron or arbiter: your own taggings never earn from this campaign.</p>}
+          {isInsider && <p className="text-xs text-muted-foreground">You are the patron or purser: your own taggings never earn from this campaign.</p>}
           {error && <p className="text-sm text-destructive">{error}</p>}
           <Button className="w-full" disabled={isPending || !chosen} onClick={submit}>{isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Publish tagging</Button>
         </div>

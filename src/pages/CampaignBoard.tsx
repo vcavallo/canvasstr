@@ -38,7 +38,7 @@ export default function CampaignBoard() {
   const { user } = useCurrentUser();
   const voterPubkeys = useMemo(() => [...new Set(votes.map((v) => v.pubkey))], [votes]);
   const { lens, minRank } = useLens();
-  const arbiter = useArbiterActions(campaign ?? FALLBACK, ledger);
+  const purser = useArbiterActions(campaign ?? FALLBACK, ledger);
   const pubkeys = useMemo(() => [
     campaign?.patronPubkey ?? '', campaign?.arbiterPubkey ?? '',
     ...(ledger?.rows.map((r) => r.contribution.pubkey) ?? []),
@@ -72,14 +72,14 @@ export default function CampaignBoard() {
         {campaign.content.requirements && <p className="text-sm"><span className="font-medium">Requirements:</span> {campaign.content.requirements}</p>}
         <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
           <span className="flex items-center gap-2"><AuthorAvatar pubkey={campaign.patronPubkey} className="h-5 w-5" /><AuthorName pubkey={campaign.patronPubkey} /> <span className="text-muted-foreground">patron</span><RankBadge score={scores.get(campaign.patronPubkey)} unranked={unranked} /></span>
-          {campaign.arbiterPubkey && <span className="flex items-center gap-2"><AuthorAvatar pubkey={campaign.arbiterPubkey} className="h-5 w-5" /><AuthorName pubkey={campaign.arbiterPubkey} /> <span className="text-muted-foreground">arbiter</span><RankBadge score={scores.get(campaign.arbiterPubkey)} unranked={unranked} /></span>}
+          {campaign.arbiterPubkey && <span className="flex items-center gap-2"><AuthorAvatar pubkey={campaign.arbiterPubkey} className="h-5 w-5" /><AuthorName pubkey={campaign.arbiterPubkey} /> <span className="text-muted-foreground">purser</span><RankBadge score={scores.get(campaign.arbiterPubkey)} unranked={unranked} /></span>}
         </div>
         <div className="flex flex-wrap gap-1">
           {campaign.targets.map((t) => <Badge key={t.z} variant="outline" className="font-mono text-xs">{t.z}</Badge>)}
         </div>
       </div>
 
-      <div className="mb-6 space-y-3"><PatronActions campaign={campaign} /><ArbiterPanel a={arbiter} campaign={campaign} ledger={ledger} /></div>
+      <div className="mb-6 space-y-3"><PatronActions campaign={campaign} /><ArbiterPanel a={purser} campaign={campaign} ledger={ledger} /></div>
 
       {ledger && (
         <div className="mb-6 rounded-lg border p-4">
@@ -104,9 +104,9 @@ export default function CampaignBoard() {
         {shownRows.map((row) => {
           const dim = !unranked && (!!lens.provider || !!lens.observer) && !!ranks.data && !passesLens(scores, row.contribution.pubkey, minRank) && row.status === 'candidate';
           return (
-            <BoardRow key={row.contribution.ref} row={row} score={scores.get(row.contribution.pubkey)} unranked={unranked} dim={dim} relays={boardRelays} arbiterView={arbiter.isArbiter}
+            <BoardRow key={row.contribution.ref} row={row} score={scores.get(row.contribution.pubkey)} unranked={unranked} dim={dim} relays={boardRelays} arbiterView={purser.isArbiter}
               votes={<VoteButtons contribution={row.contribution} tally={tallies.get(row.contribution.ref)} relays={boardRelays} weighted={weighted} />}>
-              <ArbiterRowControls row={row} a={arbiter} campaign={campaign} />
+              <ArbiterRowControls row={row} a={purser} campaign={campaign} />
             </BoardRow>
           );
         })}

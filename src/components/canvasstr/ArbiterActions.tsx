@@ -32,7 +32,7 @@ export function ArbiterPanel({ a, campaign, ledger }: { a: ArbiterActions; campa
   return (
     <Card>
       <CardContent className="flex flex-wrap items-center gap-3 p-4 text-sm">
-        <span className="font-medium">You are the arbiter.</span>
+        <span className="font-medium">You are the purser.</span>
         {campaign.targets.some(isTagElementTarget) && (
           <label className="flex items-center gap-2">
             <Switch checked={a.coApply} onCheckedChange={a.setCoApply} aria-label="Also apply the tag myself when accepting" />

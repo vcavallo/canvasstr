@@ -42,7 +42,7 @@ function Fields({ rows, relays, className }: { rows: [string, string][]; relays?
 /**
  * What the contributor submitted. Inline: the first couple of fields, so the board stays
  * scannable. "Details" opens everything — all fields, content, target, contributor, time,
- * coordinate and the raw event — for anyone (voters need it as much as the arbiter).
+ * coordinate and the raw event — for anyone (voters need it as much as the purser).
  */
 export function ContributionDetails({ contribution: c, relays }: { contribution: Contribution; relays?: string[] }) {
   const [open, setOpen] = useState(false);

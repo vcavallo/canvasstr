@@ -12,7 +12,7 @@ import { useNostrPublish } from '@/hooks/useNostrPublish';
 import { useToast } from '@/hooks/useToast';
 import { buildArbiterAnnouncementTemplate, type FeeType } from '@/lib/catallax';
 
-/** Publish a Catallax kind-33400 arbiter announcement so patrons can pick you. */
+/** Publish a Catallax kind-33400 purser announcement so patrons can pick you. */
 export function BecomeArbiterDialog({ compact }: { compact?: boolean }) {
   const { user } = useCurrentUser();
   const author = useAuthor(user?.pubkey);
@@ -30,21 +30,21 @@ export function BecomeArbiterDialog({ compact }: { compact?: boolean }) {
   const submit = async () => {
     setError('');
     try {
-      if (!name.trim()) throw new Error('Name your arbiter service, e.g. "Vinney judges lists".');
+      if (!name.trim()) throw new Error('Name your purser service, e.g. "Vinney judges lists".');
       const amount = feeType === 'percentage' ? String(Math.min(1, Math.max(0, parseFloat(feeAmount) / 100 || 0))) : String(Math.max(0, parseInt(feeAmount, 10) || 0));
       await publish(buildArbiterAnnouncementTemplate({ pubkey: user.pubkey, name: name.trim(), about: about.trim() || undefined, feeType, feeAmount: amount, categories: ['curation'] }));
-      toast({ title: 'You are now an arbiter', description: 'Patrons can pick you when they create a campaign.' });
+      toast({ title: 'You are now a purser', description: 'Patrons can pick you when they create a campaign.' });
       setOpen(false);
     } catch (e) { setError(e instanceof Error ? e.message : String(e)); }
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild><Button type="button" size="sm" variant={compact ? 'ghost' : 'outline'}><Gavel className="mr-1 h-4 w-4" />{compact ? 'Announce yourself as an arbiter' : 'Become an arbiter'}</Button></DialogTrigger>
+      <DialogTrigger asChild><Button type="button" size="sm" variant={compact ? 'ghost' : 'outline'}><Gavel className="mr-1 h-4 w-4" />{compact ? 'Announce yourself as a purser' : 'Become a purser'}</Button></DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Announce yourself as an arbiter</DialogTitle>
-          <DialogDescription>An arbiter holds a campaign's escrow, judges each entry, and pays the good ones. This publishes a Catallax announcement under your key; anyone can do it.</DialogDescription>
+          <DialogTitle>Announce yourself as a purser</DialogTitle>
+          <DialogDescription>A purser holds a campaign's escrow, judges each entry, and pays the good ones. This publishes a Catallax announcement under your key; anyone can do it.</DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
           <div className="space-y-1"><Label htmlFor="ba-name">Service name</Label><Input id="ba-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Fair judge of food lists" /></div>

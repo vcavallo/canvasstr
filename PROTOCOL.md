@@ -1,7 +1,8 @@
 # Canvasstr protocol extension to Catallax (NIP-3400)
 
-Roles, in Canvasstr's words: the **patron** funds a campaign, the **arbiter** judges and pays, and
-**canvassers** (Catallax's free agents) go out and fill the list.
+Roles, in Canvasstr's words: the **patron** funds a campaign, the **purser** (Catallax's arbiter) holds
+the purse, judges and pays, and **canvassers** (Catallax's free agents) go out and fill the list. The
+wire format keeps Catallax's names.
 
 Status: draft, v0. This document describes how Canvasstr uses Catallax kinds 33400 / 33401 / 3402
 and NIP-75 kind 9041 to pay many contributors for building up Tapestry decentralized lists

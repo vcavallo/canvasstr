@@ -34,7 +34,7 @@ so even in local mode the board streams live contributions and GrapeRank ranks f
 
 - Campaign list and live board under a point-of-view lens (see `PROTOCOL.md` §8).
 - Patron: create (target search over the Brainstorm relays), fund (LNURL to arbiter or NIP-75 goal), open.
-- Arbiter: accept & pay (LNURL → real receipt → 3402 + kind-7 endorsement), reject, shortlist for
+- Purser (Catallax arbiter): accept & pay (LNURL → real receipt → 3402 + kind-7 endorsement), reject, shortlist for
   terminal payout, close with refund.
 - Contributor: add a DList item directly from the campaign; author view for unknown pubkeys.
 - Not yet: tagging / tag-element contribution forms, arbiter-fee accounting, a real Lightning test.

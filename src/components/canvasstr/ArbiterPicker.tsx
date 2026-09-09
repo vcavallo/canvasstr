@@ -11,11 +11,11 @@ import type { Score } from '@/lib/pov';
 
 export interface ArbiterChoice { pubkey: string; service?: string }
 
-/** Self, any announced arbiter (33400) sorted by lens rank, or a pasted npub. Never restricted. */
+/** Self, any announced purser (33400) sorted by lens rank, or a pasted npub. Never restricted. */
 export function ArbiterPicker({ value, onChange, scores }: { value?: ArbiterChoice; onChange: (a: ArbiterChoice | undefined) => void; scores: Map<string, Score> }) {
   const { user } = useCurrentUser();
-  const { data: arbiters = [] } = useArbiterAnnouncements();
-  const sorted = [...arbiters].sort((a, b) => (scores.get(b.arbiterPubkey)?.rank ?? 0) - (scores.get(a.arbiterPubkey)?.rank ?? 0));
+  const { data: pursers = [] } = useArbiterAnnouncements();
+  const sorted = [...pursers].sort((a, b) => (scores.get(b.arbiterPubkey)?.rank ?? 0) - (scores.get(a.arbiterPubkey)?.rank ?? 0));
   const selectedKey = value ? `${value.pubkey}:${value.service ?? ''}` : '';
 
   return (
@@ -37,9 +37,9 @@ export function ArbiterPicker({ value, onChange, scores }: { value?: ArbiterChoi
           </div>
         ))}
       </RadioGroup>
-      <p className="text-xs text-muted-foreground">Anyone can arbitrate; only announced arbiters are listed. <BecomeArbiterDialog compact /></p>
-      <Input placeholder="or paste an arbiter npub…" onChange={(e) => { const hex = toHexPubkey(e.target.value); if (hex) onChange({ pubkey: hex }); }} />
-      {value && <p className="text-xs text-muted-foreground">Arbiter: <AuthorName pubkey={value.pubkey} /></p>}
+      <p className="text-xs text-muted-foreground">Anyone can arbitrate; only announced pursers are listed. <BecomeArbiterDialog compact /></p>
+      <Input placeholder="or paste a purser npub…" onChange={(e) => { const hex = toHexPubkey(e.target.value); if (hex) onChange({ pubkey: hex }); }} />
+      {value && <p className="text-xs text-muted-foreground">Purser: <AuthorName pubkey={value.pubkey} /></p>}
     </div>
   );
 }

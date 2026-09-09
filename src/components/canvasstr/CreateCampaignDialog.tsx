@@ -29,8 +29,8 @@ export function CreateCampaignDialog() {
   const { mutateAsync: publish, isPending } = useNostrPublish();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { data: arbiters = [] } = useArbiterAnnouncements();
-  const ranks = useRanks(lens, useMemo(() => arbiters.map((a) => a.arbiterPubkey), [arbiters]));
+  const { data: pursers = [] } = useArbiterAnnouncements();
+  const ranks = useRanks(lens, useMemo(() => pursers.map((a) => a.arbiterPubkey), [pursers]));
 
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState('');
@@ -42,7 +42,7 @@ export function CreateCampaignDialog() {
   const [maxPerPubkey, setMaxPerPubkey] = useState('');
   const [payout, setPayout] = useState<PayoutMode>('streaming');
   const [fundingType, setFundingType] = useState<FundingType>('single');
-  const [arbiter, setArbiter] = useState<ArbiterChoice | undefined>();
+  const [purser, setArbiter] = useState<ArbiterChoice | undefined>();
   const [countExisting, setCountExisting] = useState(false);
   const [error, setError] = useState('');
 
@@ -56,11 +56,11 @@ export function CreateCampaignDialog() {
     try {
       if (!title.trim()) throw new Error('Give the campaign a title.');
       if (targets.length === 0) throw new Error('Pick at least one target list.');
-      if (!arbiter) throw new Error('Choose an arbiter (yourself is fine).');
+      if (!purser) throw new Error('Choose a purser (yourself is fine).');
       const template = buildCampaignTemplate({
         d: generateTaskId(title), patronPubkey: user.pubkey, title: title.trim(), description: description.trim(), requirements: requirements.trim(),
         amount: String(parseInt(amount, 10)), rate: parseInt(rate, 10), maxPerPubkey: maxPerPubkey ? parseInt(maxPerPubkey, 10) : undefined,
-        payout, fundingType, arbiterPubkey: arbiter.pubkey, arbiterService: arbiter.service, targets, status: 'proposed', since: countExisting ? 1 : Math.floor(Date.now() / 1000),
+        payout, fundingType, arbiterPubkey: purser.pubkey, arbiterService: purser.service, targets, status: 'proposed', since: countExisting ? 1 : Math.floor(Date.now() / 1000),
       });
       const ev = await publish(template);
       toast({ title: 'Campaign published', description: 'Next: fund the escrow, then open it for contributions.' });
@@ -77,7 +77,7 @@ export function CreateCampaignDialog() {
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>New campaign</DialogTitle>
-          <DialogDescription>Put sats behind building up a list. Canvassers add to it; the arbiter pays the good ones.</DialogDescription>
+          <DialogDescription>Put sats behind building up a list. Canvassers add to it; the purser pays the good ones.</DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-1"><Label htmlFor="c-title">Title</Label><Input id="c-title" value={title} onChange={(e) => setTitle(e.target.value)} /></div>
@@ -89,7 +89,7 @@ export function CreateCampaignDialog() {
             <div className="space-y-1"><Label htmlFor="c-amount">Total escrow (sats)</Label><Input id="c-amount" type="number" min={1} value={amount} onChange={(e) => setAmount(e.target.value)} /></div>
             <div className="space-y-1"><Label htmlFor="c-max" title="How many of one person's entries can be paid in this campaign. Enforced by Canvasstr when judging, not by the protocol.">Max paid entries per person</Label><Input id="c-max" type="number" min={1} value={maxPerPubkey} onChange={(e) => setMaxPerPubkey(e.target.value)} placeholder="∞" /></div>
           </div>
-          <p className="text-sm text-muted-foreground">{slots} slots before any arbiter fee.</p>
+          <p className="text-sm text-muted-foreground">{slots} slots before any purser fee.</p>
           <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={countExisting} onChange={(e) => setCountExisting(e.target.checked)} />Also count items already on the list (otherwise only new ones from now on)</label>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
@@ -107,7 +107,7 @@ export function CreateCampaignDialog() {
               </RadioGroup>
             </div>
           </div>
-          <div className="space-y-1"><Label>Arbiter</Label><ArbiterPicker value={arbiter} onChange={setArbiter} scores={ranks.data ?? new Map()} /></div>
+          <div className="space-y-1"><Label>Purser</Label><ArbiterPicker value={purser} onChange={setArbiter} scores={ranks.data ?? new Map()} /></div>
           {error && <p className="text-sm text-destructive">{error}</p>}
           <Button className="w-full" disabled={isPending} onClick={submit}>{isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Publish campaign</Button>
         </div>

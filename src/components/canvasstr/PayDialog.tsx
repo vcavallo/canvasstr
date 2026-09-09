@@ -26,7 +26,7 @@ export interface PayRequest {
 /**
  * Pay real sats via NIP-57: LNURL → invoice → QR/copy/WebLN → wait for the 9735.
  * Calls `onReceipt` with the real receipt; never fabricates one. Lifted from Grantless's
- * ContributeDialog and made generic (escrow to arbiter, or payout to contributor).
+ * ContributeDialog and made generic (escrow to purser, or payout to contributor).
  */
 export function PayDialog({ request, onReceipt, onClose }: { request: PayRequest | null; onReceipt: (receipt: NostrEvent) => void; onClose: () => void }) {
   const { prepareInvoice, payWithWebLN, findReceipt, isWebLNAvailable } = useLightningZap();

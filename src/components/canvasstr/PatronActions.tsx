@@ -21,7 +21,7 @@ import { getActiveRelays } from '@/lib/relays';
 import { PayDialog, type PayRequest } from './PayDialog';
 
 /**
- * Patron-side lifecycle for a campaign: fund the escrow (single payer → arbiter, or open
+ * Patron-side lifecycle for a campaign: fund the escrow (single payer → purser, or open
  * a NIP-75 goal for the crowd), mark funded, open for contributions. Anyone may
  * contribute to a crowdfund goal. Status changes are republished 33401s (PROTOCOL.md §2).
  */
@@ -33,7 +33,7 @@ export function PatronActions({ campaign }: { campaign: Campaign }) {
   const { toast } = useToast();
   const { data: goalData } = useZapGoal(campaign.goalId);
   const [pay, setPay] = useState<PayRequest | null>(null);
-  // Arbiter fee is agreed out of band and paid on top of the escrow; it never touches the
+  // Purser fee is agreed out of band and paid on top of the escrow; it never touches the
   // campaign amount, the rate or the slot math (PROTOCOL.md §5).
   const [tip, setTip] = useState('');
   const navigate = useNavigate();
@@ -91,14 +91,14 @@ export function PatronActions({ campaign }: { campaign: Campaign }) {
     const total = parseInt(campaign.amount, 10) + fee;
     setPay({
       recipientPubkey: campaign.arbiterPubkey, amountSats: total, eventId: campaign.id, relays,
-      extraTags: [['a', coord]], title: 'Fund the escrow', description: `${formatSats(campaign.amount)} escrow${fee ? ` + ${formatSats(fee)} arbiter fee` : ''} to the arbiter. The campaign is marked funded when the receipt lands.`,
+      extraTags: [['a', coord]], title: 'Fund the escrow', description: `${formatSats(campaign.amount)} escrow${fee ? ` + ${formatSats(fee)} purser fee` : ''} to the purser. The campaign is marked funded when the receipt lands.`,
     });
   };
   const contribute = () => {
     if (!campaign.arbiterPubkey || !campaign.goalId) return;
     setPay({
       recipientPubkey: campaign.arbiterPubkey, amountSats: Math.min(1000, parseInt(campaign.amount, 10)), eventId: campaign.goalId, relays,
-      extraTags: [['a', coord]], title: 'Contribute to the escrow', description: 'Sats go to the arbiter, who pays canvassers from them.',
+      extraTags: [['a', coord]], title: 'Contribute to the escrow', description: 'Sats go to the purser, who pays canvassers from them.',
     });
   };
 
@@ -122,7 +122,7 @@ export function PatronActions({ campaign }: { campaign: Campaign }) {
     </AlertDialog>
   );
 
-  if (!campaign.arbiterPubkey) return <p className="text-sm text-destructive">This campaign has no arbiter and cannot be funded.</p>;
+  if (!campaign.arbiterPubkey) return <p className="text-sm text-destructive">This campaign has no purser and cannot be funded.</p>;
   if (campaign.status === 'concluded') return deleteControl ? <div>{deleteControl}</div> : null;
 
   return (
@@ -153,8 +153,8 @@ export function PatronActions({ campaign }: { campaign: Campaign }) {
               <>
                 <Button size="sm" onClick={fundSingle}>Fund escrow ({formatSats(campaign.amount)}{tip && parseInt(tip, 10) > 0 ? ` + ${formatSats(parseInt(tip, 10))} fee` : ''})</Button>
                 {campaign.arbiterPubkey !== campaign.patronPubkey && (
-                  <label className="flex items-center gap-2 text-xs text-muted-foreground">arbiter fee (sats, optional)
-                    <input type="number" min={0} className="w-24 rounded-md border bg-background px-2 py-1 text-sm" value={tip} onChange={(e) => setTip(e.target.value)} placeholder="0" title="Agreed with the arbiter out of band. Paid on top of the escrow; not part of the campaign amount or slots." />
+                  <label className="flex items-center gap-2 text-xs text-muted-foreground">purser fee (sats, optional)
+                    <input type="number" min={0} className="w-24 rounded-md border bg-background px-2 py-1 text-sm" value={tip} onChange={(e) => setTip(e.target.value)} placeholder="0" title="Agreed with the purser out of band. Paid on top of the escrow; not part of the campaign amount or slots." />
                   </label>
                 )}
                 <Button size="sm" variant="outline" disabled={isPending} onClick={() => markFunded()}>Already paid: mark funded</Button>
@@ -166,7 +166,7 @@ export function PatronActions({ campaign }: { campaign: Campaign }) {
         {(isPatron || isArbiter) && campaign.status === 'funded' && (
           <Button size="sm" disabled={isPending} onClick={() => republish({ status: 'open' }, 'Open for contributions')}>{isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Open for contributions</Button>
         )}
-        {campaign.status === 'open' && <p className="text-muted-foreground">Open. Canvassers' contributions are being judged by the arbiter.</p>}
+        {campaign.status === 'open' && <p className="text-muted-foreground">Open. Canvassers' contributions are being judged by the purser.</p>}
         {deleteControl}
         <PayDialog request={pay} onReceipt={(r) => { setPay(null); if (!crowd) void markFunded(r); }} onClose={() => setPay(null)} />
       </CardContent>

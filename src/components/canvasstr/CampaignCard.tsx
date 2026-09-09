@@ -53,7 +53,7 @@ export function CampaignCard({ campaign: c, patronScore, arbiterScore, unranked 
             <span className="flex items-center gap-2">
               <AuthorAvatar pubkey={c.arbiterPubkey} className="h-5 w-5" />
               <AuthorName pubkey={c.arbiterPubkey} />
-              <span className="text-muted-foreground">arbiter</span>
+              <span className="text-muted-foreground">purser</span>
               <RankBadge score={arbiterScore} unranked={unranked} />
             </span>
           )}

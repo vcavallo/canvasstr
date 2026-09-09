@@ -63,7 +63,7 @@ export function ContributeItemDialog({ campaign, relays }: { campaign: Campaign;
         <DialogHeader>
           <DialogTitle>Add {schema ? `a ${schema.singular}` : 'an item'}</DialogTitle>
           <DialogDescription>
-            {schema?.description ? `${schema.description}. ` : ''}Publishes a signed list item under your key (you are the canvasser). The arbiter decides whether it earns {campaign.rate.toLocaleString()} sats.
+            {schema?.description ? `${schema.description}. ` : ''}Publishes a signed list item under your key (you are the canvasser). The purser decides whether it earns {campaign.rate.toLocaleString()} sats.
           </DialogDescription>
         </DialogHeader>
         {header.isLoading ? <p className="flex items-center text-sm text-muted-foreground"><Loader2 className="mr-2 h-4 w-4 animate-spin" />Reading the list's header…</p> : (
@@ -106,7 +106,7 @@ export function ContributeItemDialog({ campaign, relays }: { campaign: Campaign;
                 <Textarea id={`ci-${k}`} value={values[k] ?? ''} onChange={(e) => set(k, e.target.value)} placeholder="Notes about this item" />
               </div>
             ))}
-            {isInsider && <p className="text-xs text-muted-foreground">You are the patron or arbiter: your own items never earn from this campaign.</p>}
+            {isInsider && <p className="text-xs text-muted-foreground">You are the patron or purser: your own items never earn from this campaign.</p>}
             {error && <p className="text-sm text-destructive">{error}</p>}
             <Button className="w-full" disabled={isPending || !schema} onClick={submit}>{isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Publish {schema?.singular ?? 'item'}</Button>
           </div>
