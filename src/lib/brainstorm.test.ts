@@ -14,6 +14,8 @@ describe('brainstorm', () => {
     expect(povState({ ...h, lastTriggered: undefined })).toBe('none');
     expect(povState(null)).toBe('none');
     expect(povState(h, 'failure')).toBe('failed');
+    expect(povState({ ...h, lastCalculated: undefined }, 'success')).toBe('ready');
+    expect(povState({ ...h, lastTriggered: undefined }, 'ongoing')).toBe('computing');
     expect(parseResultStatus({ data: { status: 'failure' } })).toBe('failure');
     expect(parseResultStatus({ data: null })).toBeUndefined();
   });

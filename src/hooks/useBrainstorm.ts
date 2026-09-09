@@ -76,7 +76,12 @@ export function useBrainstormAccount(): BrainstormAccount {
   const history = useQuery<{ history: BrainstormHistory | null; result?: ReturnType<typeof parseResultStatus> }>({
     queryKey: ['brainstorm', 'history', pk ?? '', !!token],
     enabled: !!pk && !!token,
-    refetchInterval: (q) => (q.state.data && povState(q.state.data.history, q.state.data.result) === 'computing' ? POLL_SECONDS * 1000 : false),
+    refetchInterval: (q) => {
+      const d = q.state.data;
+      if (!d || povState(d.history, d.result) !== 'computing') return false;
+      const triggered = d.history?.lastTriggered ? Date.parse(d.history.lastTriggered) : Date.now();
+      return Date.now() - triggered < 30 * 60_000 ? POLL_SECONDS * 1000 : false; // ceiling: a wedged run stays 'ongoing' for hours server-side
+    },
     queryFn: async () => {
       const H = { authorization: `Bearer ${token}` };
       const r = await api('/user/history', { headers: H });

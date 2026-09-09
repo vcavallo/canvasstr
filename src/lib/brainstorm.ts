@@ -34,16 +34,21 @@ export function parseHistory(body: unknown): BrainstormHistory | null {
 export type PovState = 'unknown' | 'none' | 'computing' | 'ready' | 'failed';
 
 /** Status of the latest calculation from GET /user/graperankResult. */
-export function parseResultStatus(body: unknown): 'waiting' | 'running' | 'success' | 'failure' | undefined {
+export function parseResultStatus(body: unknown): 'waiting' | 'ongoing' | 'success' | 'failure' | undefined {
   const s = (body as { data?: { status?: string } })?.data?.status;
-  return s === 'waiting' || s === 'running' || s === 'success' || s === 'failure' ? s : undefined;
+  return s === 'waiting' || s === 'ongoing' || s === 'success' || s === 'failure' ? s : undefined;
 }
 
 /** A POV is usable once a calculation has completed at least once. */
+/**
+ * `last_time_calculated_graperank` is only written when a run produced scorecards, so null also
+ * covers terminal failure; the request row's status is the liveness signal.
+ */
 export function povState(h: BrainstormHistory | null, lastResult?: ReturnType<typeof parseResultStatus>): PovState {
   if (!h) return 'none';
-  if (h.lastCalculated) return 'ready';
-  if (h.lastTriggered) return lastResult === 'failure' ? 'failed' : 'computing';
+  if (h.lastCalculated || lastResult === 'success') return 'ready';
+  if (lastResult === 'failure') return 'failed';
+  if (h.lastTriggered || lastResult === 'waiting' || lastResult === 'ongoing') return 'computing';
   return 'none';
 }
 
