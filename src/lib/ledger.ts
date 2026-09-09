@@ -24,6 +24,8 @@ export interface LedgerRow {
   fundable: boolean;
   /** Position of the earliest row submitting the same thing to the same target, or 'existing' when it was already on the list before the campaign. */
   duplicateOf?: number | 'existing';
+  /** Added by the patron or the arbiter themselves: shown, never paid, never takes a slot. */
+  selfDealing?: boolean;
 }
 
 export interface Ledger {
@@ -106,23 +108,23 @@ export function buildLedger(
   let paid = 0;
   let rejected = 0;
   for (const c of contributions) {
-    if (c.pubkey === campaign.patronPubkey || c.pubkey === arbiter) continue; // no self-dealing
+    const selfDealing = c.pubkey === campaign.patronPubkey || c.pubkey === arbiter; // shown, but never paid
     const acceptance = acceptances.get(c.id);
     const paidInfo = receiptIndex.get(c.id);
     let status: RowStatus = 'candidate';
     if (acceptance?.resolution === 'rejected') status = 'rejected';
     else if (acceptance || paidInfo) status = paidInfo || acceptance?.payoutZapReceiptId ? 'paid' : 'accepted';
     if (status === 'rejected') rejected++;
-    const consumesSlot = status === 'paid' || status === 'accepted';
+    const consumesSlot = !selfDealing && (status === 'paid' || status === 'accepted');
     const count = perPubkey.get(c.pubkey) ?? 0;
     const overCap = campaign.maxPerPubkey !== undefined && count >= campaign.maxPerPubkey && !consumesSlot;
-    const fundable = consumesSlot || (!overCap && held + paid < slots);
+    const fundable = !selfDealing && (consumesSlot || (!overCap && held + paid < slots));
     if (consumesSlot) { perPubkey.set(c.pubkey, count + 1); if (status === 'paid') paid++; else held++; }
     const key = contributionKey(c);
     const position = rows.length + 1;
     const duplicateOf = firstByKey.get(key);
     if (duplicateOf === undefined) firstByKey.set(key, position);
-    rows.push({ contribution: c, status, acceptance, receipt: paidInfo?.receipt, paidSats: paidInfo?.sats, position, fundable, duplicateOf });
+    rows.push({ contribution: c, status: selfDealing ? 'candidate' : status, acceptance, receipt: paidInfo?.receipt, paidSats: paidInfo?.sats, position, fundable, duplicateOf, selfDealing: selfDealing || undefined });
   }
   return { rows, slots, accepted: held + paid, paid, rejected, remaining: Math.max(0, slots - held - paid), final, prior: opts.prior ?? [] };
 }

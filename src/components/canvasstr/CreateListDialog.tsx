@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Loader2, ListPlus } from 'lucide-react';
+import { Loader2, ListPlus, Plus, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -25,7 +25,8 @@ export function CreateListDialog({ people, relays, onCreated }: { people: boolea
   const [singular, setSingular] = useState('');
   const [plural, setPlural] = useState('');
   const [description, setDescription] = useState('');
-  const [fields, setFields] = useState(people ? '' : 'name');
+  const [fields, setFields] = useState<{ name: string; level: 'required' | 'allowed' }[]>(people ? [] : [{ name: 'name', level: 'required' }]);
+  const setField = (i: number, patch: Partial<{ name: string; level: 'required' | 'allowed' }>) => setFields((f) => f.map((x, j) => (j === i ? { ...x, ...patch } : x)));
   const [error, setError] = useState('');
   if (!user) return null;
 
@@ -37,9 +38,10 @@ export function CreateListDialog({ people, relays, onCreated }: { people: boolea
       const d = `${slugify(pl)}-${Math.random().toString(36).slice(2, 8)}`;
       const tags: string[][] = [['d', d], ['names', s, pl]];
       if (description.trim()) tags.push(['description', description.trim()]);
-      const names = fields.split(',').map((x) => x.trim()).filter(Boolean);
+      const names = fields.map((f) => ({ ...f, name: f.name.trim().toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '') })).filter((f) => f.name && f.name !== 'p');
+      if (!people && !names.some((f) => f.level === 'required')) throw new Error('Mark at least one field as required, so items have something to show.');
       if (people) tags.push(['required', 'p', 'the nostr profile']);
-      names.forEach((n, i) => { if (n !== 'p') { tags.push([i === 0 && !people ? 'required' : 'allowed', n]); tags.push(['field-type', n, n === 'description' ? 'textarea' : 'text']); } });
+      for (const f of names) { tags.push([f.level, f.name]); tags.push(['field-type', f.name, f.name === 'description' ? 'textarea' : 'text']); }
       const rs = [...new Set([...LIST_RELAYS, ...relays])];
       await publishTo({ template: { kind: 39998, content: '', tags }, relays: rs });
       toast({ title: `List "${pl}" declared`, description: 'Anyone can add to it now.' });
@@ -63,9 +65,21 @@ export function CreateListDialog({ people, relays, onCreated }: { people: boolea
           </div>
           <div className="space-y-1"><Label htmlFor="nl-d">Description</Label><Textarea id="nl-d" value={description} onChange={(e) => setDescription(e.target.value)} placeholder={people ? 'People who host a podcast on nostr' : 'Restaurants inside Toronto proper'} /></div>
           <div className="space-y-1">
-            <Label htmlFor="nl-f">{people ? 'Extra fields per person (optional, comma-separated)' : 'Fields per item (comma-separated; first is required)'}</Label>
-            <Input id="nl-f" value={fields} onChange={(e) => setFields(e.target.value)} placeholder={people ? 'podcast-name, website' : 'name, neighbourhood, website'} />
-            {people && <p className="text-xs text-muted-foreground">Each item will be a nostr profile, plus these fields.</p>}
+            <Label>{people ? 'Extra fields per person (optional)' : 'Fields per item'}</Label>
+            {people && <p className="text-xs text-muted-foreground">Each item is a nostr profile; add fields only if canvassers should say more.</p>}
+            <div className="space-y-1">
+              {fields.map((f, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <Input value={f.name} onChange={(e) => setField(i, { name: e.target.value })} placeholder={people ? 'podcast-name' : i === 0 ? 'name' : 'neighbourhood'} className="h-8" />
+                  <select className="h-8 rounded-md border bg-background px-2 text-sm" value={f.level} onChange={(e) => setField(i, { level: e.target.value as 'required' | 'allowed' })}>
+                    <option value="required">required</option>
+                    <option value="allowed">optional</option>
+                  </select>
+                  <Button type="button" size="sm" variant="ghost" className="h-8 px-2" aria-label="Remove field" onClick={() => setFields((x) => x.filter((_, j) => j !== i))}><X className="h-4 w-4" /></Button>
+                </div>
+              ))}
+              <Button type="button" size="sm" variant="outline" className="h-8" onClick={() => setFields((x) => [...x, { name: '', level: 'allowed' }])}><Plus className="mr-1 h-4 w-4" />Add a field</Button>
+            </div>
           </div>
           {error && <p className="text-sm text-destructive">{error}</p>}
           <Button className="w-full" disabled={isPending} onClick={submit}>{isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Declare list</Button>

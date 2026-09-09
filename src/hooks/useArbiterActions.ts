@@ -11,6 +11,7 @@ import type { Contribution } from '@/lib/contributions';
 import { buildAcceptanceTemplate, buildCampaignFinalTemplate, buildCampaignTemplate, buildConclusionRetractionTemplate, buildEndorsementTemplate, campaignCoord, campaignToInput, type Campaign } from '@/lib/canvasstr';
 import type { Ledger } from '@/lib/ledger';
 import { getActiveRelays } from '@/lib/relays';
+import { buildProfileTagTemplate } from '@/lib/profileTag';
 import type { PayRequest } from '@/components/canvasstr/PayDialog';
 
 interface Pending { contribution: Contribution; request: PayRequest }
@@ -52,6 +53,12 @@ export function useArbiterActions(campaign: Campaign, ledger: Ledger | null) {
     try {
       await publish(buildAcceptanceTemplate({ campaign, contribution: c.event, payoutReceiptId: receipt.id, resolution: 'successful', relay: relays[0] }));
       await publishTo({ template: buildEndorsementTemplate(c.event, campaign.targets.find((t) => t.z === c.target)?.relay), relays: targetRelaysFor(c) }).catch(() => undefined);
+      // For tag campaigns the arbiter also applies the tag under their own key: a second application
+      // from a trusted asserter is what Tapestry's per-POV counting elevates. Items are not duplicated.
+      const target = campaign.targets.find((t) => t.z === c.target);
+      if (c.kindOfContribution === 'profile-tag' && c.taggedRef && target?.tagEventId && user) {
+        await publishTo({ template: buildProfileTagTemplate({ taggedPubkey: c.taggedRef, tagCoord: c.tagCoord ?? target.z, tagEventId: target.tagEventId, asserterPubkey: user.pubkey, relay: target.relay }), relays: targetRelaysFor(c) }).catch(() => undefined);
+      }
       toast({ title: 'Accepted and paid', description: c.label });
     } catch (e) { fail('Paid, but publishing the acceptance failed', e); }
   };

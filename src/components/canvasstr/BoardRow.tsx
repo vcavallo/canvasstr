@@ -44,7 +44,8 @@ export function BoardRow({ row, score, unranked, dim, relays, votes, arbiterView
           </time>}
           {arbiterView && row.duplicateOf !== undefined && <Badge variant="outline" className="gap-1 text-muted-foreground" title={row.duplicateOf === 'existing' ? 'This was already on the list before the campaign started' : 'Same item submitted earlier by another contributor'}><Copy className="h-3 w-3" />{row.duplicateOf === 'existing' ? 'already on the list' : `same as #${row.duplicateOf}`}</Badge>}
           {votes}
-          {!row.fundable && row.status === 'candidate' && <Badge variant="outline" className="text-muted-foreground">beyond budget</Badge>}
+          {row.selfDealing && <Badge variant="outline" className="text-muted-foreground" title="Added by the patron or arbiter; never paid and never takes a slot">own entry, not eligible</Badge>}
+          {!row.fundable && !row.selfDealing && row.status === 'candidate' && <Badge variant="outline" className="text-muted-foreground">beyond budget</Badge>}
           {row.paidSats !== undefined && <span className="text-sm tabular-nums">{formatSats(row.paidSats)}</span>}
           <span className={cn('flex items-center gap-1 text-sm', s.tone)}>{s.icon}{s.label}</span>
           {children}

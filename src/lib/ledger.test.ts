@@ -27,12 +27,14 @@ const events = [item(alice, 'a1', 20), item(bob, 'b1', 30), item(bob, 'b2', 31),
 const contributions = collectContributions(events, campaign.targets);
 
 describe('buildLedger', () => {
-  it('starts all candidates, 3 slots, excludes the patron', () => {
+  it('starts all candidates, 3 slots, shows the patron\'s own row as ineligible', () => {
     const l = buildLedger(campaign, contributions, [], []);
-    expect(l.rows.map((r) => r.status)).toEqual(['candidate', 'candidate', 'candidate', 'candidate']);
+    expect(l.rows.map((r) => r.status)).toEqual(['candidate', 'candidate', 'candidate', 'candidate', 'candidate']);
     expect(l.slots).toBe(3);
     expect(l.remaining).toBe(3);
-    expect(l.rows.find((r) => r.contribution.pubkey === PATRON)).toBeUndefined();
+    const own = l.rows.find((r) => r.contribution.pubkey === PATRON)!;
+    expect(own.selfDealing).toBe(true);
+    expect(own.fundable).toBe(false);
   });
   it('flips to paid on an arbiter-signed receipt before any 3402, and counts the slot', () => {
     const l = buildLedger(campaign, contributions, [], [receipt('a1-1111', ARBITER, 500, 50)]);
@@ -50,7 +52,7 @@ describe('buildLedger', () => {
     const rej = asEvent(buildAcceptanceTemplate({ campaign, contribution: events[1], resolution: 'rejected' }), ARBITER, 61);
     const forged = asEvent(buildAcceptanceTemplate({ campaign, contribution: events[3], payoutReceiptId: 'x', resolution: 'successful' }), carol, 62);
     const l = buildLedger(campaign, contributions, [acc, rej, forged], []);
-    expect(l.rows.map((r) => r.status)).toEqual(['paid', 'rejected', 'candidate', 'candidate']);
+    expect(l.rows.map((r) => r.status)).toEqual(['paid', 'rejected', 'candidate', 'candidate', 'candidate']);
     expect(l.rejected).toBe(1);
   });
   it('enforces max_per_pubkey and slot exhaustion as fundability, not hiding', () => {
@@ -67,6 +69,7 @@ describe('buildLedger', () => {
     const full = buildLedger(campaign, contributions, [], [paidA, paidB1, paidC]);
     expect(full.remaining).toBe(0);
     expect(full.rows.every((r) => r.status === 'paid' || !r.fundable)).toBe(true);
+    expect(full.rows.filter((r) => r.selfDealing)).toHaveLength(1);
   });
   it('marks later submissions of the same thing as duplicates of the first (time order)', () => {
     const dup = item(carol, 'sushi-kaji-again', 45); dup.tags = dup.tags.map((tg) => (tg[0] === 'name' ? ['name', '  SUSHI  Kaji '] : tg));
@@ -95,7 +98,7 @@ describe('buildLedger', () => {
     const l = buildLedger(campaign, contributions, [], [], { prior });
     expect(l.prior).toHaveLength(1);
     expect(l.rows.find((r) => r.contribution.label === 'a1')!.duplicateOf).toBe('existing');
-    expect(l.rows).toHaveLength(4); // prior never becomes a row
+    expect(l.rows).toHaveLength(5); // prior never becomes a row
   });
 
   it('picks up the final conclusion', () => {

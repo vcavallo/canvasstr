@@ -10,6 +10,9 @@ import { useBrainstormAccount } from '@/hooks/useBrainstorm';
 import { Loader2 } from 'lucide-react';
 import { toHexPubkey } from '@/lib/lensConfig';
 
+/** The threshold slider confuses more than it helps right now; state and default (1) stay. */
+const SHOW_MIN_RANK = false;
+
 const SOURCE_LABEL: Record<string, string> = {
   url: 'shared point of view', self: 'your point of view', default: 'default point of view', house: 'house point of view', author: 'author view',
 };
@@ -45,7 +48,7 @@ export function LensBar() {
         )}
       </div>
 
-      {lens.source !== 'author' && (
+      {SHOW_MIN_RANK && lens.source !== 'author' && (
         <div className="flex items-center gap-3">
           <span className="text-muted-foreground">min rank</span>
           <Slider className="w-32" min={0} max={100} step={1} value={[minRank]} onValueChange={([v]) => setMinRank(v)} />
