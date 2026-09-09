@@ -77,6 +77,11 @@ Copied infra, docs, empty router. `npm test` green.
 ### M6 — polish
 - Seed script for local strfry (campaign + fake contributions), Playwright smoke, deploy.
 
+## Follow-ups (2026-09-09)
+- Campaign list has no pagination or filters; will not scale past a few hundred campaigns. Add status/intent filters, sort by rank/recency, and cursor pagination on `created_at`.
+- Elevating accepted entries: on accept the arbiter publishes a kind-7 `+`. For tag campaigns the arbiter could also apply the tag under their own key (a second application from a trusted asserter, which Tapestry counts). Longer term: a GrapeRank interpretation that weights "accepted by my preferred arbiters". See discussion with Vinney.
+- Arbiter fee is a tip paid on top of escrow (fund UX); not reflected in slots or refunds by design.
+
 ## Open risks
 - Tapestry emits dual `z` (legacy canonical TA + local TA) on taggings; the target filter must
   accept both namespaces. Ask tapestry which handles to honor for a given deployment.

@@ -1,6 +1,7 @@
 # Changelog
 
 - 2026-09-09 — Renamed Gleaner → **Canvasstr** (canvasstr.org). Wire tag `t canvasstr`, legacy `t gleaner` still read. Roles: patron / arbiter / canvasser. Tagline "Get paid to build the lexiconomy." Default POV = Vinney's main key (has a 10040). About page.
+- 2026-09-09 — Arbiter fee as a tip in the fund flow (never touches slots); "declare a new list" from the picker; "become an arbiter" (33400) from Home and the arbiter picker; About: fee section, NIP links, Trusted Assertions wording. Repo pushed to github.com/vcavallo/canvasstr.
 
 - 2026-09-07 — M0 scaffold: infra lifted from Grantless, PROTOCOL.md, PLAN.md, POV lens design.
 - 2026-09-07 — M1 protocol layer: campaign/acceptance builders+parsers, contribution matching for all four target shapes, ledger, POV lens primitives. 98 tests, real-relay fixtures.

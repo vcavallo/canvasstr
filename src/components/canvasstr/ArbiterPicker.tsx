@@ -6,6 +6,7 @@ import { useArbiterAnnouncements } from '@/hooks/useCatallax';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { toHexPubkey } from '@/lib/lensConfig';
 import { RankBadge } from './RankBadge';
+import { BecomeArbiterDialog } from './BecomeArbiterDialog';
 import type { Score } from '@/lib/pov';
 
 export interface ArbiterChoice { pubkey: string; service?: string }
@@ -36,6 +37,7 @@ export function ArbiterPicker({ value, onChange, scores }: { value?: ArbiterChoi
           </div>
         ))}
       </RadioGroup>
+      <p className="text-xs text-muted-foreground">Anyone can arbitrate; only announced arbiters are listed. <BecomeArbiterDialog compact /></p>
       <Input placeholder="or paste an arbiter npub…" onChange={(e) => { const hex = toHexPubkey(e.target.value); if (hex) onChange({ pubkey: hex }); }} />
       {value && <p className="text-xs text-muted-foreground">Arbiter: <AuthorName pubkey={value.pubkey} /></p>}
     </div>

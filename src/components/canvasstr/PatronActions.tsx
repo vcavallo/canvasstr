@@ -33,6 +33,9 @@ export function PatronActions({ campaign }: { campaign: Campaign }) {
   const { toast } = useToast();
   const { data: goalData } = useZapGoal(campaign.goalId);
   const [pay, setPay] = useState<PayRequest | null>(null);
+  // Arbiter fee is agreed out of band and paid on top of the escrow; it never touches the
+  // campaign amount, the rate or the slot math (PROTOCOL.md §5).
+  const [tip, setTip] = useState('');
   const navigate = useNavigate();
   const { nostr } = useNostr();
   // An escrow receipt may land after the pay dialog gave up, or on the provider's own relays.
@@ -84,9 +87,11 @@ export function PatronActions({ campaign }: { campaign: Campaign }) {
 
   const fundSingle = () => {
     if (!campaign.arbiterPubkey) return;
+    const fee = Math.max(0, parseInt(tip || '0', 10) || 0);
+    const total = parseInt(campaign.amount, 10) + fee;
     setPay({
-      recipientPubkey: campaign.arbiterPubkey, amountSats: parseInt(campaign.amount, 10), eventId: campaign.id, relays,
-      extraTags: [['a', coord]], title: 'Fund the escrow', description: `${formatSats(campaign.amount)} to the arbiter. The campaign is marked funded when the receipt lands.`,
+      recipientPubkey: campaign.arbiterPubkey, amountSats: total, eventId: campaign.id, relays,
+      extraTags: [['a', coord]], title: 'Fund the escrow', description: `${formatSats(campaign.amount)} escrow${fee ? ` + ${formatSats(fee)} arbiter fee` : ''} to the arbiter. The campaign is marked funded when the receipt lands.`,
     });
   };
   const contribute = () => {
@@ -146,7 +151,12 @@ export function PatronActions({ campaign }: { campaign: Campaign }) {
               </>
             ) : (
               <>
-                <Button size="sm" onClick={fundSingle}>Fund escrow ({formatSats(campaign.amount)})</Button>
+                <Button size="sm" onClick={fundSingle}>Fund escrow ({formatSats(campaign.amount)}{tip && parseInt(tip, 10) > 0 ? ` + ${formatSats(parseInt(tip, 10))} fee` : ''})</Button>
+                {campaign.arbiterPubkey !== campaign.patronPubkey && (
+                  <label className="flex items-center gap-2 text-xs text-muted-foreground">arbiter fee (sats, optional)
+                    <input type="number" min={0} className="w-24 rounded-md border bg-background px-2 py-1 text-sm" value={tip} onChange={(e) => setTip(e.target.value)} placeholder="0" title="Agreed with the arbiter out of band. Paid on top of the escrow; not part of the campaign amount or slots." />
+                  </label>
+                )}
                 <Button size="sm" variant="outline" disabled={isPending} onClick={() => markFunded()}>Already paid: mark funded</Button>
                 <span className="text-xs text-muted-foreground">Checking the relays for a receipt every 30 s.</span>
               </>

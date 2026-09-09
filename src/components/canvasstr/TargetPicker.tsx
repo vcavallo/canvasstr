@@ -16,6 +16,7 @@ import { INTENTS, listToOption, optionMatchesIntent, tagToNotesOption, tagToPeop
 import { passesLens } from '@/lib/pov';
 import { TargetOptionRow } from './TargetOptionRow';
 import { TargetPreview } from './TargetPreview';
+import { CreateListDialog } from './CreateListDialog';
 
 const COORD = /^(39998|39999):[0-9a-f]{64}:.+$/;
 const TAG_URL = /\/tag\/[^/]+\/([0-9a-f]{64})|^([0-9a-f]{64})$/;
@@ -112,6 +113,7 @@ export function TargetPicker({ value, onChange, relays }: { value: CampaignTarge
             <Button type="button" size="sm" variant="outline" onClick={() => add({ z: trimmed, hint: 'item' })}>Use this list coordinate</Button>
           )}
           {error && <p className="text-sm text-destructive">{error}</p>}
+          {intent !== 'notes' && <CreateListDialog people={intent === 'people'} relays={relays} onCreated={add} />}
           {search && !pastedCoord && !tagId && (
             <ul className="max-h-72 overflow-y-auto rounded-md border text-sm divide-y">
               {(listsLoading || tagsLoading) && <li className="p-2 text-muted-foreground">Searching…</li>}
