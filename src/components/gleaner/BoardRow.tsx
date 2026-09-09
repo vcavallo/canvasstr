@@ -20,7 +20,7 @@ const STATUS: Record<LedgerRow['status'], { icon: React.ReactNode; label: string
 function describe(row: LedgerRow, relays?: string[]): React.ReactNode {
   const c = row.contribution;
   switch (c.kindOfContribution) {
-    case 'profile-tag': return <>tagged {c.taggedRef ? <AuthorName pubkey={c.taggedRef} relays={relays} className="font-medium" /> : 'someone'}{c.tagCoord ? ` as ${c.tagCoord.split(':').pop()}` : ''}</>;
+    case 'profile-tag': return <>tagged {c.taggedRef ? <span className="inline-flex items-center gap-1 align-middle"><AuthorAvatar pubkey={c.taggedRef} className="h-5 w-5" relays={relays} /><AuthorName pubkey={c.taggedRef} relays={relays} className="font-medium" /></span> : 'someone'}{c.tagCoord ? ` as ${c.tagCoord.split(':').pop()}` : ''}</>;
     case 'event-tag': return `tagged an event as ${c.label}`;
     default: return `added "${c.label}"`;
   }

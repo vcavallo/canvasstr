@@ -119,7 +119,7 @@ export default function CampaignBoard() {
               <li key={c.ref} className="flex flex-wrap items-center gap-x-3 gap-y-1 py-1.5">
                 <AuthorAvatar pubkey={c.pubkey} className="h-5 w-5" relays={boardRelays} />
                 <AuthorName pubkey={c.pubkey} relays={boardRelays} />
-                <span className="min-w-0 flex-1 truncate" title={c.ref}>{c.kindOfContribution === 'profile-tag' && c.taggedRef ? <>tagged <AuthorName pubkey={c.taggedRef} relays={boardRelays} className="font-medium" /></> : c.label}</span>
+                <span className="min-w-0 flex-1 truncate" title={c.ref}>{c.kindOfContribution === 'profile-tag' && c.taggedRef ? <>tagged <span className="inline-flex items-center gap-1 align-middle"><AuthorAvatar pubkey={c.taggedRef} className="h-5 w-5" relays={boardRelays} /><AuthorName pubkey={c.taggedRef} relays={boardRelays} className="font-medium" /></span></> : c.label}</span>
                 <time className="text-xs text-muted-foreground" dateTime={new Date(c.created_at * 1000).toISOString()}>{new Date(c.created_at * 1000).toLocaleDateString()}</time>
               </li>
             ))}

@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useProfileSearch } from '@/hooks/useProfileSearch';
+import { useLens } from '@/hooks/useLens';
 import { usePublishTo } from '@/hooks/usePublishTo';
 import { useToast } from '@/hooks/useToast';
 import { isTagElementTarget } from '@/lib/contributions';
@@ -24,7 +25,8 @@ export function TagProfileDialog({ campaign, relays }: { campaign: Campaign; rel
   const [query, setQuery] = useState('');
   const [chosen, setChosen] = useState<{ pubkey: string; name: string } | null>(null);
   const [error, setError] = useState('');
-  const search = useProfileSearch(chosen ? '' : query);
+  const { lens } = useLens();
+  const search = useProfileSearch(chosen ? '' : query, lens.observer);
   const target = tagTargets.find((t) => t.z === targetZ) ?? tagTargets[0];
 
   if (!user || !target || !target.tagEventId || campaign.status !== 'open') return null;

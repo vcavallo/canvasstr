@@ -1,44 +1,39 @@
 import { useQuery } from '@tanstack/react-query';
 import { useNostr } from '@nostrify/react';
 import type { NostrEvent, NostrMetadata } from '@nostrify/nostrify';
-import { BRAINSTORM_API } from '@/lib/brainstorm';
 import { toHexPubkey } from '@/lib/lensConfig';
 
-export interface ProfileHit { pubkey: string; metadata: NostrMetadata; rank?: number }
+export interface ProfileHit { pubkey: string; metadata: NostrMetadata }
 
-const PROFILE_RELAYS = ['wss://relay.primal.net', 'wss://relay.damus.io', 'wss://purplepag.es'];
+/** Brainstorm's NIP-50 proxy: kind-0 search ranked by GrapeRank, POV-scoped via `observer:`. */
+export const SEARCH_RELAYS = ['wss://tags.brainstorm.world/relay'];
 
 /**
- * Resolve an npub/hex directly, or search by name through Brainstorm's Open Ranking
- * profile search (global GrapeRank order; the endpoint does not take a POV yet), then
- * fetch the kind-0s for the hits.
+ * Resolve an npub/hex directly, or NIP-50 search profiles on Brainstorm ranked from the
+ * lens observer's point of view (falls back to the house POV for an unknown observer).
  */
-export function useProfileSearch(query: string) {
+export function useProfileSearch(query: string, observer?: string) {
   const { nostr } = useNostr();
   const q = query.trim();
   const hex = toHexPubkey(q);
   return useQuery<ProfileHit[]>({
-    queryKey: ['profile-search', hex ?? q],
+    queryKey: ['profile-search', hex ?? q, observer ?? ''],
     enabled: q.length >= 2,
     staleTime: 60_000,
     queryFn: async ({ signal }) => {
-      let ranked: { pubkey: string; rank?: number }[] = [];
-      if (hex) ranked = [{ pubkey: hex }];
-      else {
-        const res = await fetch(`${BRAINSTORM_API}/search/pubkeys`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ query: q, limit: 8 }), signal }).catch(() => null);
-        const body = res && res.ok ? ((await res.json()) as { results?: { pubkey: string; rank: number }[] }) : null;
-        ranked = body?.results ?? [];
+      const filter = hex
+        ? { kinds: [0], authors: [hex], limit: 1 }
+        : { kinds: [0], search: `${q}${observer ? ` observer:${observer}` : ''} sort:rank:desc`, limit: 8 };
+      const events = await nostr.query([filter], { signal: AbortSignal.any([signal, AbortSignal.timeout(8000)]), relays: hex ? undefined : SEARCH_RELAYS }).catch(() => [] as NostrEvent[]);
+      const seen = new Set<string>();
+      const out: ProfileHit[] = [];
+      for (const e of events) {
+        if (seen.has(e.pubkey)) continue;
+        seen.add(e.pubkey);
+        try { out.push({ pubkey: e.pubkey, metadata: JSON.parse(e.content) as NostrMetadata }); } catch { out.push({ pubkey: e.pubkey, metadata: {} }); }
       }
-      if (ranked.length === 0) return [];
-      const events = await nostr.query([{ kinds: [0], authors: ranked.map((r) => r.pubkey) }], { signal: AbortSignal.any([signal, AbortSignal.timeout(6000)]), relays: PROFILE_RELAYS }).catch(() => [] as NostrEvent[]);
-      const latest = new Map<string, NostrEvent>();
-      for (const e of events) { const p = latest.get(e.pubkey); if (!p || e.created_at > p.created_at) latest.set(e.pubkey, e); }
-      return ranked.map((r) => {
-        const e = latest.get(r.pubkey);
-        let metadata: NostrMetadata = {};
-        try { metadata = e ? (JSON.parse(e.content) as NostrMetadata) : {}; } catch { /* keep empty */ }
-        return { pubkey: r.pubkey, metadata, rank: r.rank };
-      });
+      if (hex && out.length === 0) out.push({ pubkey: hex, metadata: {} });
+      return out;
     },
   });
 }
