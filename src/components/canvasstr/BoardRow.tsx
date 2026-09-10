@@ -1,4 +1,4 @@
-import { CheckCircle2, Circle, CircleDollarSign, Copy, XCircle } from 'lucide-react';
+import { CheckCircle2, Circle, CircleDollarSign, Copy, Stamp, XCircle } from 'lucide-react';
 import { formatDistanceToNowStrict } from 'date-fns';
 import { AuthorAvatar } from '@/components/AuthorAvatar';
 import { AuthorName } from '@/components/AuthorName';
@@ -44,6 +44,7 @@ export function BoardRow({ row, score, unranked, dim, relays, votes, arbiterView
           </time>}
           {arbiterView && row.duplicateOf !== undefined && <Badge variant="outline" className="gap-1 text-muted-foreground" title={row.duplicateOf === 'existing' ? 'This was already on the list before the campaign started' : 'Same item submitted earlier by another contributor'}><Copy className="h-3 w-3" />{row.duplicateOf === 'existing' ? 'already on the list' : `same as #${row.duplicateOf}`}</Badge>}
           {votes}
+          {row.purserEndorsement && <Badge variant="outline" className="gap-1 text-muted-foreground" title={`The purser also published this entry under their own key (${new Date(row.purserEndorsement.created_at * 1000).toLocaleString()}). Counts as an endorsement in any web of trust that trusts the purser.`}><Stamp className="h-3 w-3" />purser co-signed</Badge>}
           {row.selfDealing && <Badge variant="outline" className="text-muted-foreground" title="Added by the patron or purser; never paid and never takes a slot">own entry, not eligible</Badge>}
           {!row.fundable && !row.selfDealing && row.status === 'candidate' && <Badge variant="outline" className="text-muted-foreground">beyond budget</Badge>}
           {row.paidSats !== undefined && <span className="text-sm tabular-nums">{formatSats(row.paidSats)}</span>}

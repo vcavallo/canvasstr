@@ -26,6 +26,8 @@ export interface LedgerRow {
   duplicateOf?: number | 'existing';
   /** Added by the patron or the arbiter themselves: shown, never paid, never takes a slot. */
   selfDealing?: boolean;
+  /** The purser's own duplicate of this entry (e.g. co-tagging on accept): an endorsement, folded into this row. */
+  purserEndorsement?: Contribution;
 }
 
 export interface Ledger {
@@ -121,6 +123,12 @@ export function buildLedger(
     const fundable = !selfDealing && (consumesSlot || (!overCap && held + paid < slots));
     if (consumesSlot) { perPubkey.set(c.pubkey, count + 1); if (status === 'paid') paid++; else held++; }
     const key = contributionKey(c);
+    // The purser re-publishing an entry that already exists (co-tagging on accept) is an
+    // endorsement of that entry, not a submission: fold it into the row it endorses.
+    if (selfDealing && c.pubkey === arbiter) {
+      const at = firstByKey.get(key);
+      if (typeof at === 'number') { rows[at - 1].purserEndorsement = c; continue; }
+    }
     const position = rows.length + 1;
     const duplicateOf = firstByKey.get(key);
     if (duplicateOf === undefined) firstByKey.set(key, position);

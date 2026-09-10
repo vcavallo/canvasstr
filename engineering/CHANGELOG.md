@@ -1,6 +1,7 @@
 # Changelog
 
 - 2026-09-09 — Role rename in the UI: the arbiter is the **purser**. Wire format unchanged.
+- 2026-09-09 — The purser's own duplicate of an existing entry (co-tagging on accept) folds into that row as a "purser co-signed" badge instead of appearing as a second row.
 
 - 2026-09-09 — Renamed Gleaner → **Canvasstr** (canvasstr.org). Wire tag `t canvasstr`, legacy `t gleaner` still read. Roles: patron / arbiter / canvasser. Tagline "Get paid to build the lexiconomy." Default POV = Vinney's main key (has a 10040). About page.
 - 2026-09-09 — Arbiter fee as a tip in the fund flow (never touches slots); "declare a new list" from the picker; "become an arbiter" (33400) from Home and the arbiter picker; About: fee section, NIP links, Trusted Assertions wording. Repo pushed to github.com/vcavallo/canvasstr.

@@ -101,6 +101,17 @@ describe('buildLedger', () => {
     expect(l.rows).toHaveLength(5); // prior never becomes a row
   });
 
+  it('folds the purser\'s duplicate of an existing entry into that row as an endorsement', () => {
+    const co = item(ARBITER, 'a1', 50); co.tags = co.tags.map((tg) => (tg[0] === 'name' ? ['name', 'a1'] : tg));
+    const l = buildLedger(campaign, collectContributions([...events, co], campaign.targets), [], []);
+    const a1 = l.rows.find((r) => r.contribution.label === 'a1' && r.contribution.pubkey === alice)!;
+    expect(a1.purserEndorsement?.pubkey).toBe(ARBITER);
+    expect(l.rows.filter((r) => r.contribution.pubkey === ARBITER)).toHaveLength(0);
+    const solo = item(ARBITER, 'zed', 51);
+    const l2 = buildLedger(campaign, collectContributions([...events, solo], campaign.targets), [], []);
+    expect(l2.rows.find((r) => r.contribution.id === 'zed-bbbb')?.selfDealing).toBe(true);
+  });
+
   it('picks up the final conclusion', () => {
     const fin = asEvent(buildCampaignFinalTemplate({ campaign, resolution: 'successful' }), ARBITER, 99);
     expect(buildLedger(campaign, contributions, [fin], []).final?.resolution).toBe('successful');
